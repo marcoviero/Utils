@@ -4,6 +4,7 @@ from astropy.cosmology import FlatLambdaCDM
 import astropy.units as u
 pi=3.141592653589793
 
+## B
 def black(nu_in, T):
   #h = 6.623e-34     ; Joule*s
   #k = 1.38e-23      ; Joule/K
@@ -19,6 +20,7 @@ def black(nu_in, T):
   
   return ret
 
+## C
 def clean_nans(dirty_array, replacement_char=0.0):
   clean_array = dirty_array
   clean_array[np.isnan(dirty_array)] = replacement_char
@@ -71,6 +73,7 @@ def comoving_volume_given_area(area, zz1, zz2, mpc=None, arcmin=None):
 
   return vol
 
+## D
 def dist_idl(n1,m1=None):
   ''' Copy of IDL's dist.pro
   Create a rectangular array in which each element is 
@@ -94,6 +97,27 @@ def dist_idl(n1,m1=None):
 
   return a
 
+## G
+def gauss_kern(fwhm, side, pixsize):
+  ''' Create a 2D Gaussian (size= side x side)'''
+  from scipy.ndimage.filters import gaussian_filter
+  from shift import shift_twod
+  import numpy as np
+  from numpy import zeros
+  from numpy import shape
+
+  sig = fwhm / 2.355 / pixsize
+  delt = zeros([side,side])
+  delt[0,0]=1.0
+  ms = shape(delt)
+  delt = shift_twod(delt, ms[0] / 2, ms[1] / 2)
+  kern = delt
+  gaussian_filter(delt, sig, output= kern)
+  kern /= np.max(kern)
+
+  return kern
+
+## L
 def lambda_to_ghz(lam):
   c  = 3e8
   hz=c/(lam*1e-6)
@@ -107,52 +131,7 @@ def loggen(minval, maxval, npoints, linear = None):
   else:
     return 10.0 ** ( (np.log10(maxval/minval)) * points + np.log10(minval) )
 
-def planck(wav, T): 
-  #nuvector = c * 1.e6 / lambdavector # Hz from microns??
-  h = 6.626e-34
-  c = 3.0e+8
-  k = 1.38e-23
-  a = 2.0 * h * c**2
-  b = h * c / (wav * k * T)
-  intensity = a / ( (wav**5) * (np.exp(b) - 1.0) )
-
-  return intensity
-
-def schecter(X,P,exp=None,plaw=None):
-  '''# X is alog10(M)
-  # P[0]=alpha, P[1]=M*, P[2]=phi*
-  # the output is in units of [Mpc^-3 dex^-1] ???
-  '''  
-  if exp != None: 
-    return np.log(10.) * P[2] * np.exp(-10**(X - P[1]))
-  if plaw != None: 
-    return np.log(10.) * P[2] * (10**((X - P[1])*(1+P[0])))
-  return np.log(10.) * P[2] * (10.**((X-P[1])*(1.0+P[0]))) * np.exp(-10.**(X-P[1]))
-
-def shift(seq, x):
-  from numpy import roll
-  out = roll(seq, int(x))
-  return out 
-
-def shift_twod(seq, x, y):
-  from numpy import roll
-  out = roll(roll(seq, int(x), axis = 1), int(y), axis = 0)
-  return out 
-
-def shift_bit_length(x):
-  return 1<<(x-1).bit_length()
-
-def zero_pad(cmap,l2=0):
-  ms=np.shape(cmap)
-  if l2 == 0:
-    l2 = max([shift_bit_length(ms[0]),shift_bit_length(ms[1])])
-  if ms[0] <= l2 and ms[1] <=l2:
-    zmap=np.zeros([l2,l2])
-    zmap[:ms[0],:ms[1]]=cmap 
-  else:
-    zmap=cmap
-  return zma
-
+## P
 def pad_and_smooth_psf(mapin, psfin):
 
   s = np.shape(mapin)
@@ -179,6 +158,42 @@ def pad_and_smooth_psf(mapin, psfin):
     np.fft.fft2(zero_pad(psfpad)) ) ) 
 
   return smmap[0:mnx,0:mny]
+
+def planck(wav, T): 
+  #nuvector = c * 1.e6 / lambdavector # Hz from microns??
+  h = 6.626e-34
+  c = 3.0e+8
+  k = 1.38e-23
+  a = 2.0 * h * c**2
+  b = h * c / (wav * k * T)
+  intensity = a / ( (wav**5) * (np.exp(b) - 1.0) )
+
+  return intensity
+
+## S
+def schecter(X,P,exp=None,plaw=None):
+  '''# X is alog10(M)
+  # P[0]=alpha, P[1]=M*, P[2]=phi*
+  # the output is in units of [Mpc^-3 dex^-1] ???
+  '''  
+  if exp != None: 
+    return np.log(10.) * P[2] * np.exp(-10**(X - P[1]))
+  if plaw != None: 
+    return np.log(10.) * P[2] * (10**((X - P[1])*(1+P[0])))
+  return np.log(10.) * P[2] * (10.**((X-P[1])*(1.0+P[0]))) * np.exp(-10.**(X-P[1]))
+
+def shift(seq, x):
+  from numpy import roll
+  out = roll(seq, int(x))
+  return out 
+
+def shift_twod(seq, x, y):
+  from numpy import roll
+  out = roll(roll(seq, int(x), axis = 1), int(y), axis = 0)
+  return out 
+
+def shift_bit_length(x):
+  return 1<<(x-1).bit_length()
 
 def smooth_psf(mapin, psfin):
 
@@ -207,3 +222,15 @@ def smooth_psf(mapin, psfin):
     ) 
 
   return smmap
+
+## Z
+def zero_pad(cmap,l2=0):
+  ms=np.shape(cmap)
+  if l2 == 0:
+    l2 = max([shift_bit_length(ms[0]),shift_bit_length(ms[1])])
+  if ms[0] <= l2 and ms[1] <=l2:
+    zmap=np.zeros([l2,l2])
+    zmap[:ms[0],:ms[1]]=cmap 
+  else:
+    zmap=cmap
+  return zma
