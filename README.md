@@ -1,5 +1,6 @@
 # Utils 
 Generally useful functions for Python.  
+DEFINITELY need many of these for SIMSTACK to work!
 Simple functions are collected in utils.py
 More involved functions will have their own files.  
 
