@@ -1,8 +1,7 @@
-# simstack
-SIMSTACK for Python
-
-An open-source, Python version of SIMSTACK. 
-Hopefully, with community input will grow in utility.
+# Utils 
+Generally useful functions for Python.  
+Simple functions are collected in utils.py
+More involved functions will have their own files.  
 
 ## People
 
