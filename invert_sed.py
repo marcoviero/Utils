@@ -17,8 +17,7 @@ def find_nearest_index(array_in,value):
 
 def sed(p, nu_in, T, betain, alphain): 
 	'''
-	#; m = [A, T, Beta, Alpha] - return SED (array) in Jy
-	#def sed(p, nu_in, ng, T, betain, alphain): #; m = [A, T, Beta, Alpha] - return SED (array) in Jy
+	#m = [A, T, Beta, Alpha] - return SED (array) in Jy
 	#P[0] = A
 	#P[1] = T
 	#P[2] = Beta
@@ -47,12 +46,14 @@ def sed(p, nu_in, T, betain, alphain):
 
 	return graybody
 
-def sedint(p, nu_in, Lir, T, betain, alphain): # m = [A, T, Beta, Alpha] - return integrated SED flux (one number) in Jy x Hz
-#def sedint(p, nu_in, Lir, ng, T, betain, alphain): # m = [A, T, Beta, Alpha] - return integrated SED flux (one number) in Jy x Hz
+def sedint(p, nu_in, Lir, T, betain, alphain): 
+	'''
+	#m = [A, T, Beta, Alpha] - return integrated SED flux (one number) in Jy x Hz
 	#P[0] = A
 	#P[1] = T
 	#P[2] = Beta
 	#P[3] = Alpha
+	'''
 
 	v = p.valuesdict()
 	A0 = v['Ain']
