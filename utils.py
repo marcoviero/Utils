@@ -5,6 +5,41 @@ import astropy.units as u
 pi=3.141592653589793
 
 ## B
+def bin_ndarray(ndarray, new_shape, operation='sum'):
+  """
+  Bins an ndarray in all axes based on the target shape, by summing or
+    averaging.
+
+  Number of output dimensions must match number of input dimensions.
+
+  Example
+  -------
+  >>> m = np.arange(0,100,1).reshape((10,10))
+  >>> n = bin_ndarray(m, new_shape=(5,5), operation='sum')
+  >>> print(n)
+
+  [[ 22  30  38  46  54]
+   [102 110 118 126 134]
+   [182 190 198 206 214]
+   [262 270 278 286 294]
+   [342 350 358 366 374]]
+  """
+  if not operation.lower() in ['sum', 'mean', 'average', 'avg']:
+    raise ValueError("Operation {} not supported.".format(operation))
+  if ndarray.ndim != len(new_shape):
+    raise ValueError("Shape mismatch: {} -> {}".format(ndarray.shape,new_shape))
+
+  compression_pairs = [(d, c//d) for d, c in zip(new_shape,ndarray.shape)]
+
+  flattened = [l for p in compression_pairs for l in p]
+  ndarray = ndarray.reshape(flattened)
+  for i in range(len(new_shape)):
+    if operation.lower() == "sum":
+      ndarray = ndarray.sum(-1*(i+1))
+    elif operation.lower() in ["mean", "average", "avg"]:
+      ndarray = ndarray.mean(-1*(i+1))
+  return ndarray
+
 def black(nu_in, T):
   #h = 6.623e-34     ; Joule*s
   #k = 1.38e-23      ; Joule/K
@@ -55,7 +90,7 @@ def circle_mask(pixmap,radius_in,pixres):
   maskout = shift_twod(mask, pad_side/2, pad_side/2)
 
   return maskout[:xx,:yy]
-  
+
 def clean_nans(dirty_array, replacement_char=0.0):
   clean_array = dirty_array
   clean_array[np.isnan(dirty_array)] = replacement_char

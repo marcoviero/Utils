@@ -1,7 +1,7 @@
 import pdb
 import numpy as np
-from VieroLibrary.black import black
-from VieroLibrary.loggen import loggen
+from utils import black
+from utils import loggen
 from astropy.cosmology import FlatLambdaCDM
 import astropy.units as u
 from lmfit import Parameters, minimize, fit_report
