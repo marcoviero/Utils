@@ -15,13 +15,15 @@ def find_nearest_index(array_in,value):
 	idx = (np.abs(array_in-np.reshape(value,(ng,1)))).argmin(axis=1)
 	return idx
 
-def sed(p, nu_in, T, betain, alphain): #; m = [A, T, Beta, Alpha] - return SED (array) in Jy
-#def sed(p, nu_in, ng, T, betain, alphain): #; m = [A, T, Beta, Alpha] - return SED (array) in Jy
+def sed(p, nu_in, T, betain, alphain): 
+	'''
+	#; m = [A, T, Beta, Alpha] - return SED (array) in Jy
+	#def sed(p, nu_in, ng, T, betain, alphain): #; m = [A, T, Beta, Alpha] - return SED (array) in Jy
 	#P[0] = A
 	#P[1] = T
 	#P[2] = Beta
 	#P[3] = Alpha
-
+	'''
 	v = p.valuesdict()
 	A0= v['Ain']
 	A=np.asarray(A0)
