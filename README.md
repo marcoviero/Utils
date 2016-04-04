@@ -8,6 +8,7 @@ More involved functions will have their own files.
 
 * Marco Viero
 * Lorenzo Moncelsi
+* Jason Sun
 
 ## License, Credits etc
 
