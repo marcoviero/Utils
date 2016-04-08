@@ -2,22 +2,21 @@ import pdb
 import six
 import numpy as np
 from astropy.io import fits
-from rebin_ndarray import bin_ndarray as rebin
-from gauss_kern import gauss_kern
-from clean_nans import clean_nans
+from utils import bin_ndarray as rebin
+from utils import gauss_kern
+from utils import clean_nans
 
 class Skymaps:
 
 	def __init__(self,file_map,file_noise,psf,color_correction=1.0):
 		''' This Class creates Objects for a set of maps/noisemaps/beams/TransferFunctions/etc., 
 		at each Wavelength.
-			This is a work in progress!
-			Issues:  If the beam has a different pixel size from the map, it is not yet able to 
-			re-scale it.  Just haven't found a convincing way to make it work.   
-
-			Future Work:
-				Will shift some of the work into functions (e.g., read psf, color_correction) 
-				and increase flexibility.
+		This is a work in progress!
+		Issues:  If the beam has a different pixel size from the map, it is not yet able to 
+		re-scale it.  Just haven't found a convincing way to make it work.   
+		Future Work:
+		Will shift some of the work into functions (e.g., read psf, color_correction) 
+		and increase flexibility.
 		'''
 		#READ MAPS
 		if file_map == file_noise:
@@ -59,7 +58,7 @@ class Skymaps:
 			self.psf_pixel_size = pix_beam
 		else:
 			sig = psf / 2.355 / pix
-			kern = gauss_kern(psf, np.floor(psf * 10), pix)
+			kern = gauss_kern(psf, np.floor(psf * 8.), pix)
 
 		self.map = clean_nans(cmap) * color_correction
 		self.noise = clean_nans(cnoise,replacement_char=1e10) * color_correction
@@ -67,6 +66,9 @@ class Skymaps:
 		self.pixel_size = pix
 		self.psf = kern
 
+	def beam_area_correction(self,beam_area):
+		self.map *= beam_area * 1e6
+		
 	def add_wavelength(self,wavelength):
 		self.wavelength = wavelength
 
@@ -86,6 +88,7 @@ class Field_catalogs:
 
 	def separate_sf_qt(self):
 		sfg = np.ones(self.nsrc)
+		#pdb.set_trace()
 		for i in range(self.nsrc):
 			if (self.table.rf_U_V[i] > 1.3) and (self.table.rf_V_J[i] < 1.5):
 				if (self.table.z_peak[i] < 1):
@@ -96,7 +99,7 @@ class Field_catalogs:
 		#indqt = np.where(sfg == 0)
 		self.table['sfg'] = sfg
 
-	def separate_nuv_r(self):
+	#def separate_nuv_r(self):
 
 
 	def get_sf_qt_mass_redshift_bins(self, znodes, mnodes):
@@ -108,23 +111,16 @@ class Field_catalogs:
 				ind_mz_qt =( (self.table.sfg == 0) & (self.table.z_peak >= znodes[iz]) & (self.table.z_peak < znodes[iz+1]) & 
 					(10**self.table.LMASS >= 10**mnodes[jm]) & (10**self.table.LMASS < 10**mnodes[jm+1]) ) 
 
-				self.id_z_ms['z_'+str(znodes[iz])+'-'+str(znodes[iz+1])+'__m_'+str(mnodes[jm])+'-'+str(mnodes[jm+1])+'_sf'] = self.table.ID[ind_mz_sf].values 
-				self.id_z_ms['z_'+str(znodes[iz])+'-'+str(znodes[iz+1])+'__m_'+str(mnodes[jm])+'-'+str(mnodes[jm+1])+'_qt'] = self.table.ID[ind_mz_qt].values 
-
-	def get_parent_child_redshift_bins2(self, znodes):
-		self.id_z_sed = {}
-		for iz in range(len(znodes[:-1])):
-			for jm in range(len(mnodes[:-1])):
-				ind_sed =( (self.table.sfg == 1) & (self.table.z_peak >= znodes[iz]) & (self.table.z_peak < znodes[iz+1]) & 
-					(10**self.table.LMASS >= 10**mnodes[jm]) & (10**self.table.LMASS < 10**mnodes[jm+1]) ) 
-
-				self.id_z_sed['z_'+str(znodes[iz])+'-'+str(znodes[iz+1])+'__sed_'+str(mnodes[jm])] = self.table.ID[ind_sed].values 
+				#self.id_z_ms['z_'+str(znodes[iz])+'-'+str(znodes[iz+1])+'__m_'+str(mnodes[jm])+'-'+str(mnodes[jm+1])+'_sf'] = self.table.ID[ind_mz_sf].values 
+				#self.id_z_ms['z_'+str(znodes[iz])+'-'+str(znodes[iz+1])+'__m_'+str(mnodes[jm])+'-'+str(mnodes[jm+1])+'_qt'] = self.table.ID[ind_mz_qt].values 
+				self.id_z_ms['z_'+str(znodes[iz]).replace('.','p')+'_'+str(znodes[iz+1]).replace('.','p')+'__m_'+str(mnodes[jm]).replace('.','p')+'_'+str(mnodes[jm+1])+'_sf'] = self.table.ID[ind_mz_sf].values 
+				self.id_z_ms['z_'+str(znodes[iz]).replace('.','p')+'_'+str(znodes[iz+1]).replace('.','p')+'__m_'+str(mnodes[jm]).replace('.','p')+'_'+str(mnodes[jm+1])+'_qt'] = self.table.ID[ind_mz_qt].values 
 
 	def get_parent_child_redshift_bins(self,znodes):
 		self.id_z_sed = {}
 		for ch in self.table.parent.unique():
 			for iz in range(len(znodes[:-1])):
-				self.id_z_sed['z_'+str(znodes[iz])+'-'+str(znodes[iz+1])+'__sed'+str(ch)] = self.table.ID[ (self.table.parent == ch) & (self.table.z_peak >= znodes[iz]) & (self.table.z_peak < znodes[iz+1]) ].values 
+				self.id_z_sed['z_'+str(znodes[iz]).replace('.','p')+'_'+str(znodes[iz+1]).replace('.','p')+'__sed'+str(ch)] = self.table.ID[ (self.table.parent == ch) & (self.table.z_peak >= znodes[iz]) & (self.table.z_peak < znodes[iz+1]) ].values 
 
 	def get_parent_child_bins(self):
 		self.id_children = {}
