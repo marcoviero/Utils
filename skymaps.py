@@ -90,11 +90,11 @@ class Field_catalogs:
 		sfg = np.ones(self.nsrc)
 		#pdb.set_trace()
 		for i in range(self.nsrc):
-			if (self.table.rf_U_V[i] > 1.3) and (self.table.rf_V_J[i] < 1.5):
-				if (self.table.z_peak[i] < 1):
-					if (self.table.rf_U_V[i] > (self.table.rf_V_J[i]*0.88+0.69) ): sfg[i]=0
-				if (self.table.z_peak[i] > 1):
-					if (self.table.rf_U_V[i] > (self.table.rf_V_J[i]*0.88+0.59) ): sfg[i]=0
+			if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
+				if (self.table.z_peak.values[i] < 1):
+					if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.69) ): sfg[i]=0
+				if (self.table.z_peak.values[i] > 1):
+					if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.59) ): sfg[i]=0
 		#indsf = np.where(sfg == 1)
 		#indqt = np.where(sfg == 0)
 		self.table['sfg'] = sfg
