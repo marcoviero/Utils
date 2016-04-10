@@ -1,7 +1,10 @@
 import pdb
 import numpy as np
+from numpy import zeros
+from numpy import shape
 from astropy.cosmology import FlatLambdaCDM
 import astropy.units as u
+from scipy.ndimage.filters import gaussian_filter
 pi=3.141592653589793
 
 ## B
@@ -167,14 +170,20 @@ def dist_idl(n1,m1=None):
 
   return a
 
+## F
+def find_nearest(array,value):
+    idx = (np.abs(array-value)).argmin()
+    
+    return array[idx]
+
+def find_nearest_index(array,value):
+    idx = (np.abs(array-value)).argmin()
+    
+    return idx
+
 ## G
 def gauss_kern(fwhm, side, pixsize):
   ''' Create a 2D Gaussian (size= side x side)'''
-  from scipy.ndimage.filters import gaussian_filter
-  from shift import shift_twod
-  import numpy as np
-  from numpy import zeros
-  from numpy import shape
 
   sig = fwhm / 2.355 / pixsize
   delt = zeros([side,side])
@@ -303,4 +312,4 @@ def zero_pad(cmap,l2=0):
     zmap[:ms[0],:ms[1]]=cmap 
   else:
     zmap=cmap
-  return zma
+  return zmap
