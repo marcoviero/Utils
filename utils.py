@@ -186,7 +186,7 @@ def gauss_kern(fwhm, side, pixsize):
   ''' Create a 2D Gaussian (size= side x side)'''
 
   sig = fwhm / 2.355 / pixsize
-  delt = zeros([side,side])
+  delt = zeros([int(side),int(side)])
   delt[0,0]=1.0
   ms = shape(delt)
   delt = shift_twod(delt, ms[0] / 2, ms[1] / 2)
@@ -301,6 +301,10 @@ def smooth_psf(mapin, psfin):
     ) 
 
   return smmap
+
+def solid_angle_from_fwhm(fwhm_arcsec):
+  sa = np.pi*(fwhm_arcsec / 3600.0 * np.pi / 180.0)**2.0 / (4.0 * np.log(2.0))
+  return sa
 
 ## Z
 def zero_pad(cmap,l2=0):
