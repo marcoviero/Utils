@@ -113,8 +113,8 @@ class Field_catalogs:
 
 				#self.id_z_ms['z_'+str(znodes[iz])+'-'+str(znodes[iz+1])+'__m_'+str(mnodes[jm])+'-'+str(mnodes[jm+1])+'_sf'] = self.table.ID[ind_mz_sf].values 
 				#self.id_z_ms['z_'+str(znodes[iz])+'-'+str(znodes[iz+1])+'__m_'+str(mnodes[jm])+'-'+str(mnodes[jm+1])+'_qt'] = self.table.ID[ind_mz_qt].values 
-				self.id_z_ms['z_'+str(znodes[iz]).replace('.','p')+'_'+str(znodes[iz+1]).replace('.','p')+'__m_'+str(mnodes[jm]).replace('.','p')+'_'+str(mnodes[jm+1])+'_sf'] = self.table.ID[ind_mz_sf].values 
-				self.id_z_ms['z_'+str(znodes[iz]).replace('.','p')+'_'+str(znodes[iz+1]).replace('.','p')+'__m_'+str(mnodes[jm]).replace('.','p')+'_'+str(mnodes[jm+1])+'_qt'] = self.table.ID[ind_mz_qt].values 
+				self.id_z_ms['z_'+str(znodes[iz]).replace('.','p')+'_'+str(znodes[iz+1]).replace('.','p')+'__m_'+str(mnodes[jm]).replace('.','p')+'_'+str(mnodes[jm+1]).replace('.','p')+'_sf'] = self.table.ID[ind_mz_sf].values 
+				self.id_z_ms['z_'+str(znodes[iz]).replace('.','p')+'_'+str(znodes[iz+1]).replace('.','p')+'__m_'+str(mnodes[jm]).replace('.','p')+'_'+str(mnodes[jm+1]).replace('.','p')+'_qt'] = self.table.ID[ind_mz_qt].values 
 
 	def get_parent_child_redshift_bins(self,znodes):
 		self.id_z_sed = {}
