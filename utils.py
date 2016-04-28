@@ -75,7 +75,7 @@ def circle_mask(pixmap,radius_in,pixres):
       before = beforey
   else: before = beforey
   l2 = np.ceil(before)
-  pad_side = 2.0 ** l2
+  pad_side = int(2.0 ** l2)
   outmap = np.zeros([pad_side, pad_side])
   outmap[:xx,:yy] = pixmap
 
@@ -153,16 +153,16 @@ def dist_idl(n1,m1=None):
   proportinal to its frequency'''
 
   if m1 == None:
-    m1 = n1
+    m1 = int(n1)
 
   x = np.arange(float(n1))
   for i in range(len(x)): x[i]= min(x[i],(n1 - x[i])) ** 2.
 
-  a = np.zeros([float(n1),float(m1)])
+  a = np.zeros([int(n1),int(m1)])
 
   i2 = m1/2 + 1
 
-  for i in np.arange(i2):
+  for i in range(i2):
     y = np.sqrt(x + i ** 2.)
     a[:,i] = y
     if i != 0:
@@ -202,6 +202,35 @@ def lambda_to_ghz(lam):
   hz=c/(lam*1e-6)
   ghz = 1e-9*hz
   return ghz
+
+def leja_mass_function(z,Mass=np.linspace(9,13,100),sfg=0):
+  #sfg = 0  -  All
+  #sfg = 1  -  Quiescent 
+  #sfg = 2  -  Star Forming
+
+  nz=np.shape(z)
+
+  a1=[-0.39,-0.10,-0.97]
+  a2=[-1.53,-1.69,-1.58]
+  p1a=[-2.46,-2.51,-2.88]
+  p1b=[ 0.07,-0.33, 0.11]
+  p1c=[-0.28,-0.07,-0.31]
+  p2a=[-3.11,-3.54,-3.48]
+  p2b=[-0.18,-2.31, 0.07]
+  p2c=[-0.03, 0.73,-0.11]
+  ma= [10.72,10.70,10.67]
+  mb= [-0.13, 0.00,-0.02]
+  mc= [ 0.11, 0.00, 0.10]
+
+  aone=a1[sfg]+np.zeros(nz)
+  atwo=a2[sfg]+np.zeros(nz)
+  phione=10**(p1a[sfg] + p1b[sfg]*z + p1c[sfg]*z**2)
+  phitwo=10**(p2a[sfg] + p2b[sfg]*z + p2c[sfg]*z**2)
+  mstar = ma[sfg] + mb[sfg]*z + mc[sfg]*z**2
+
+  #P[0]=alpha, P[1]=M*, P[2]=phi*, P[3]=alpha_2, P[4]=M*_2, P[5]=phi*_2
+  P = np.array([aone,mstar,phione,atwo,mstar,phitwo])
+  return dschecter(Mass,P)
 
 def loggen(minval, maxval, npoints, linear = None):
   points = np.arange(npoints)/(npoints - 1)
@@ -250,10 +279,20 @@ def planck(wav, T):
   return intensity
 
 ## S
+def dschecter(X,P):
+  '''Fits a double Schechter function but using the same M*
+     X is alog10(M)
+     P[0]=alpha, P[1]=M*, P[2]=phi*, P[3]=alpha_2, P[4]=M*_2, P[5]=phi*_2
+  '''
+  rsch1 = np.log(10.) * P[2] * (10.**((X-P[1])*(1+P[0]))) * np.exp(-10.**(X-P[1]))
+  rsch2 = np.log(10.) * P[5] * (10.**((X-P[4])*(1+P[3]))) * np.exp(-10.**(X-P[4]))
+
+  return rsch1+rsch2
+
 def schecter(X,P,exp=None,plaw=None):
-  '''# X is alog10(M)
-  # P[0]=alpha, P[1]=M*, P[2]=phi*
-  # the output is in units of [Mpc^-3 dex^-1] ???
+  ''' X is alog10(M)
+      P[0]=alpha, P[1]=M*, P[2]=phi*
+      the output is in units of [Mpc^-3 dex^-1] ???
   '''  
   if exp != None: 
     return np.log(10.) * P[2] * np.exp(-10**(X - P[1]))
