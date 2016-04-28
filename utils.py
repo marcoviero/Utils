@@ -146,6 +146,11 @@ def comoving_volume_given_area(area, zz1, zz2, mpc=None, arcmin=None):
 
   return vol
 
+def cumulative_number_density(z,Mass=np.linspace(9,13,100),sfg=0):
+  dM = Mass[1] - Mass[0]
+  smf = dM * leja_mass_function(z,Mass=Mass,sfg=sfg)
+  return np.cumsum(smf[::-1])[::-1] 
+
 ## D
 def dist_idl(n1,m1=None):
   ''' Copy of IDL's dist.pro
