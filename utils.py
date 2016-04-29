@@ -201,6 +201,18 @@ def gauss_kern(fwhm, side, pixsize):
 
   return kern
 
+def get_stellar_mass_at_number_density(zeds,nden,sfg=0):
+  nz = np.shape(zeds)[0]
+  nn = np.shape(nden)[0]
+  sm = np.zeros([nz,nn])
+  Mass = np.linspace(8,14,10000) 
+  for iz in range(nz):
+    cnd = cumulative_number_density(zeds[iz],Mass=Mass,sfg=sfg)
+    for jn in range(nn):
+      sm[iz,jn] = Mass[find_nearest_index(cnd,10**nden[jn])]
+
+  return sm
+
 ## L
 def lambda_to_ghz(lam):
   c  = 3e8
@@ -282,6 +294,10 @@ def planck(wav, T):
   intensity = a / ( (wav**5) * (np.exp(b) - 1.0) )
 
   return intensity
+
+## R
+#def round_sig(x, sig=2):
+#  return np.round(x, sig-int(np.floor(np.log10(x)))-1)
 
 ## S
 def dschecter(X,P):
