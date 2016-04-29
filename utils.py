@@ -146,7 +146,7 @@ def comoving_volume_given_area(area, zz1, zz2, mpc=None, arcmin=None):
 
   return vol
 
-def cumulative_number_density(z,Mass=np.linspace(9,13,100),sfg=0):
+def cumulative_number_density(z,Mass=np.linspace(9,13,100),sfg=2):
   dM = Mass[1] - Mass[0]
   smf = dM * leja_mass_function(z,Mass=Mass,sfg=sfg)
   return np.cumsum(smf[::-1])[::-1] 
@@ -201,7 +201,7 @@ def gauss_kern(fwhm, side, pixsize):
 
   return kern
 
-def get_stellar_mass_at_number_density(zeds,nden,sfg=0):
+def get_stellar_mass_at_number_density(zeds,nden,sfg=2):
   nz = np.shape(zeds)[0]
   nn = np.shape(nden)[0]
   sm = np.zeros([nz,nn])
@@ -220,24 +220,24 @@ def lambda_to_ghz(lam):
   ghz = 1e-9*hz
   return ghz
 
-def leja_mass_function(z,Mass=np.linspace(9,13,100),sfg=0):
-  #sfg = 0  -  All
-  #sfg = 1  -  Quiescent 
-  #sfg = 2  -  Star Forming
+def leja_mass_function(z,Mass=np.linspace(9,13,100),sfg=2):
+  #sfg = 2  -  All
+  #sfg = 0  -  Quiescent 
+  #sfg = 1  -  Star Forming
 
   nz=np.shape(z)
 
-  a1=[-0.39,-0.10,-0.97]
-  a2=[-1.53,-1.69,-1.58]
-  p1a=[-2.46,-2.51,-2.88]
-  p1b=[ 0.07,-0.33, 0.11]
-  p1c=[-0.28,-0.07,-0.31]
-  p2a=[-3.11,-3.54,-3.48]
-  p2b=[-0.18,-2.31, 0.07]
-  p2c=[-0.03, 0.73,-0.11]
-  ma= [10.72,10.70,10.67]
-  mb= [-0.13, 0.00,-0.02]
-  mc= [ 0.11, 0.00, 0.10]
+  a1= [-0.10,-0.97,-0.39]
+  a2= [-1.69,-1.58,-1.53]
+  p1a=[-2.51,-2.88,-2.46]
+  p1b=[-0.33, 0.11, 0.07]
+  p1c=[-0.07,-0.31,-0.28]
+  p2a=[-3.54,-3.48,-3.11]
+  p2b=[-2.31, 0.07,-0.18]
+  p2c=[ 0.73,-0.11,-0.03]
+  ma= [10.70,10.67,10.72]
+  mb= [ 0.00,-0.02,-0.13]
+  mc= [ 0.00, 0.10, 0.11]
 
   aone=a1[sfg]+np.zeros(nz)
   atwo=a2[sfg]+np.zeros(nz)
