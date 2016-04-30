@@ -3,6 +3,7 @@ import numpy as np
 from numpy import zeros
 from numpy import shape
 from astropy.cosmology import FlatLambdaCDM
+from astropy.cosmology import  Planck15 as cosmo
 import astropy.units as u
 from scipy.ndimage.filters import gaussian_filter
 pi=3.141592653589793
@@ -94,6 +95,9 @@ def circle_mask(pixmap,radius_in,pixres):
 
   return maskout[:xx,:yy]
 
+def clean_args(dirty_args):
+  return dirty_args.replace('.','p').replace('-','_')
+
 def clean_nans(dirty_array, replacement_char=0.0):
   clean_array = dirty_array
   clean_array[np.isnan(dirty_array)] = replacement_char
@@ -101,11 +105,11 @@ def clean_nans(dirty_array, replacement_char=0.0):
 
   return clean_array
 
-def comoving_distance(z,h=0.6774,OmM=0.3089,OmL=0.6911,Omk=0.0,dz=0.001,inverse_h=None):
+def comoving_distance(z,h=cosmo.h,OmM=cosmo.Om0,OmL=cosmo.Ode0,Omk=cosmo.Ok0,dz=0.001,inverse_h=None):
   #Defaults to Planck 2015 cosmology
-  H0 = 100. * h #km / s / Mpc
+  H0 = cosmo.H0.value #km / s / Mpc
   D_hubble = 3000. / h # h^{-1} Mpc = 9.26e25 / h; (meters)
-  cosmo = FlatLambdaCDM(H0 = H0 * u.km / u.s / u.Mpc, Om0 = OmM)
+  #cosmo = FlatLambdaCDM(H0 = H0 * u.km / u.s / u.Mpc, Om0 = OmM)
   n_z = z/dz 
   i_z = np.arange(n_z)*dz
   D_c = 0.0
