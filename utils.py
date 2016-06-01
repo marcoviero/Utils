@@ -206,7 +206,7 @@ def fast_sed_fitter(wavelengths, fluxes, covar):
   return m
 
 def find_sed_min(p, wavelengths, fluxes, covar):
-  
+
   graybody = fast_sed(p,wavelengths) 
 
   return (fluxes - graybody) / covar
@@ -232,7 +232,7 @@ def fast_sed(m,wavelengths):
   nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
 
   graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
-  powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * betain,(ng,1))
+  powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
   graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
   return graybody
