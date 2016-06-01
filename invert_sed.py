@@ -41,7 +41,7 @@ def sed(p, nu_in, T, betain, alphain):
 	nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
 
 	graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
-	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * betain,(ng,1))
+	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
 	graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
 	return graybody
@@ -79,7 +79,7 @@ def sedint(p, nu_in, Lir, T, betain, alphain):
 	#nu_cut_ind = find_nearest_index(nu_in,nu_cut)
 
 	graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
-	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * betain,(ng,1))
+	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
 	graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
 	#pdb.set_trace()
@@ -116,7 +116,7 @@ def sedint2(p, nu_in, Lir, ng): # m = [A, T, Beta, Alpha] - return integrated SE
 	#nu_cut_ind = find_nearest_index(nu_in,nu_cut)
 
 	graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
-	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * betain,(ng,1))
+	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
 	graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
 	#pdb.set_trace()
