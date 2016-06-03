@@ -3,7 +3,7 @@ import numpy as np
 from numpy import zeros
 from numpy import shape
 from astropy.cosmology import FlatLambdaCDM
-from astropy.cosmology import  Planck15 as cosmo
+from astropy.cosmology import Planck15 as cosmo
 import astropy.units as u
 from scipy.ndimage.filters import gaussian_filter
 from lmfit import Parameters, minimize, fit_report
@@ -183,9 +183,22 @@ def dist_idl(n1,m1=None):
   return a
 
 ## F
-def fast_Lir(Tin,betain,alphain,z):
+def fast_Lir(m,zin): #Tin,betain,alphain,z):
   '''I dont know how to do this yet'''
-  return Lir
+  #wavelength_range = np.logspace(np.log10(8.),np.log10(1000.),10000.)
+  wavelength_range = np.linspace(8.,1000.,10.*992.) 
+  model_sed = fast_sed(m,wavelength_range)
+
+  nu_in = c * 1.e6 / wavelength_range
+  ns = len(nu_in)
+  
+  dnu = nu_in[0:ns-1] - nu_in[1:ns]
+  dnu = np.append(dnu[0],dnu)
+  Lir = np.sum(model_sed * dnu, axis=1)
+  conversion = 4.0 * np.pi *(1.0E-13 * cosmo.luminosity_distance(zin) * 3.08568025E22)**2.0 / L_sun # 4 * pi * D_L^2    units are L_sun/(Jy x Hz)
+
+  Lrf = Lir * conversion # Jy x Hz
+  return Lrf
 
 def fast_sed_fitter(wavelengths, fluxes, covar):
 
