@@ -3,6 +3,7 @@ import numpy as np
 from utils import black
 from utils import loggen
 from astropy.cosmology import FlatLambdaCDM
+from astropy.cosmology import Planck15 as cosmo
 import astropy.units as u
 from lmfit import Parameters, minimize, fit_report
 
@@ -134,7 +135,6 @@ def simple_flux_from_greybody(lambdavector, Trf = None, b = None, Lrf = None, zi
 	variability of dust temperatures within the galaxy. The two different functional
 	forms are stitched together by imposing that the two functions and their first
 	derivatives coincide. The code contains the nitty-gritty details explicitly.
-	Cosmology assumed: H0=70.5, Omega_M=0.274, Omega_L=0.726 (Hinshaw et al. 2009)
 
 	Inputs:
 	alphain = spectral index of the power law replacing the Wien part of the spectrum, to account for the variability of dust temperatures within a galaxy [default = 2; see Blain 1999 and Blain et al. 2003]
@@ -160,7 +160,7 @@ def simple_flux_from_greybody(lambdavector, Trf = None, b = None, Lrf = None, zi
 	nu_mod = c * 1.e6/lambda_mod # Hz
 
 	#Lorenzo's version had: H0=70.5, Omega_M=0.274, Omega_L=0.726 (Hinshaw et al. 2009)
-	cosmo = FlatLambdaCDM(H0 = 70.5 * u.km / u.s / u.Mpc, Om0 = 0.273)
+	#cosmo = Planck15#(H0 = 70.5 * u.km / u.s / u.Mpc, Om0 = 0.273)
 	conversion = 4.0 * np.pi *(1.0E-13 * cosmo.luminosity_distance(zin) * 3.08568025E22)**2.0 / L_sun # 4 * pi * D_L^2    units are L_sun/(Jy x Hz)
 
 	Lir = Lrf / conversion # Jy x Hz
@@ -218,7 +218,7 @@ def single_simple_flux_from_greybody(lambdavector, Trf = None, b = 2.0, Lrf = No
 	lambda_mod = loggen(1e3, 8.0, nsed) # microns
 	nu_mod = c * 1.e6/lambda_mod # Hz
 
-	cosmo = FlatLambdaCDM(H0 = 70.5 * u.km / u.s / u.Mpc, Om0 = 0.273)
+	#cosmo = Planck15#(H0 = 70.5 * u.km / u.s / u.Mpc, Om0 = 0.273)
 	conversion = 4.0 * np.pi *(1.0E-13 * cosmo.luminosity_distance(zin) * 3.08568025E22)**2.0 / L_sun # 4 * pi * D_L^2    units are L_sun/(Jy x Hz)
 
 	Lir = Lrf / conversion # Jy x Hz
