@@ -2,7 +2,7 @@ import pdb
 import numpy as np
 from numpy import zeros
 from numpy import shape
-from astropy.cosmology import FlatLambdaCDM
+#from astropy.cosmology import FlatLambdaCDM
 from astropy.cosmology import Planck15 as cosmo
 import astropy.units as u
 from scipy.ndimage.filters import gaussian_filter
