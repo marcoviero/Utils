@@ -2,7 +2,7 @@ import pdb
 import numpy as np
 from utils import black
 from utils import loggen
-from astropy.cosmology import FlatLambdaCDM
+#from astropy.cosmology import FlatLambdaCDM
 from astropy.cosmology import Planck15 as cosmo
 import astropy.units as u
 from lmfit import Parameters, minimize, fit_report
