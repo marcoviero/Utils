@@ -330,6 +330,17 @@ def loggen(minval, maxval, npoints, linear = None):
   else:
     return 10.0 ** ( (np.log10(maxval/minval)) * points + np.log10(minval) )
 
+def L_fun(p,zed):
+  '''Luminosities in log(L)'''
+  v = p.valuesdict()
+  lum = v["s0"] - (1.+(zed/v["zed0"])**(-1.0*v["gamma"]))
+  return lum
+
+def L_fit(p, zed, L, Lerr):
+  '''Luminosities in log(L)'''
+  lum = L_fun(p,zed)
+  return (L - lum)/Lerr
+
 ## P
 def pad_and_smooth_psf(mapin, psfin):
 
