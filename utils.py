@@ -452,6 +452,17 @@ def solid_angle_from_fwhm(fwhm_arcsec):
   sa = np.pi*(fwhm_arcsec / 3600.0 * np.pi / 180.0)**2.0 / (4.0 * np.log(2.0))
   return sa
 
+## T
+def T_fun(p,zed):
+  z_T = 1.0
+  v = p.valuesdict()
+  T = v['T_0'] * ((1+zed)/(1+z_T))**(v['epsilon_T'])
+  return T
+
+def T_fit(p, zed, T, Terr):
+  Temp = T_fun(p,zed)
+  return (T - Temp)/Terr
+
 ## Z
 def zero_pad(cmap,l2=0):
   ms=np.shape(cmap)
