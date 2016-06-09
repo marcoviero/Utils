@@ -218,6 +218,26 @@ def fast_sed_fitter(wavelengths, fluxes, covar):
 
   return m
 
+def fast_double_sed_fitter(wavelengths, fluxes, covar):
+
+  fit_params = Parameters()
+  fit_params.add('A_hot', value = 1e-32, vary = True)
+  fit_params.add('A_cold', value = 1e-32, vary = True)
+  fit_params.add('T_hot', value = 40.0, vary = True, min = 25.0, max = 500.0)
+  fit_params.add('T_cold', value = 17.0, vary = True, min = 9.0, max = 23.0)
+  fit_params.add('beta', value = 1.80, vary = False)
+  fit_params.add('alpha', value = 2.0, vary = False)
+
+  #nu_in = c * 1.e6 / wavelengths
+
+  sed_params = minimize(find_double_sed_min,fit_params,
+    args=(np.ndarray.flatten(wavelengths),),
+    kws={'fluxes':fluxes,'covar':covar})
+
+  m = sed_params.params
+
+  return m
+
 def find_sed_min(p, wavelengths, fluxes, covar):
 
   graybody = fast_sed(p,wavelengths) 
@@ -225,7 +245,50 @@ def find_sed_min(p, wavelengths, fluxes, covar):
   return (fluxes - graybody) / covar
   #return (fluxes - graybody) # np.invert(covar) # (fluxes - graybody) 
 
-def fast_sed(m,wavelengths):
+def find_double_sed_min(p, wavelengths, fluxes, covar):
+
+  graybody = fast_double_sed(p,wavelengths) 
+
+  return (fluxes - graybody) / covar
+
+def fast_double_sed(m,wavelengths):
+  nu_in = c * 1.e6 / wavelengths
+
+  v = m.valuesdict()
+  A_hot= np.asarray(v['A_hot'])
+  A_cold= np.asarray(v['A_cold'])
+  T_hot = np.asarray(v['T_hot'])
+  T_cold = np.asarray(v['T_cold'])
+  betain = np.asarray(v['beta'])
+  alphain = np.asarray(v['alpha'])
+  ng = np.size(A)
+
+  ns = len(nu_in)
+  base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
+  expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
+  K = base * 10.0**expo
+
+  #Hot
+  w_num_hot = A_hot * K * (T_hot * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+  w_den_hot = (np.exp(3.0 + betain + alphain) - 1.0)
+  w_div_hot = w_num_hot/w_den_hot 
+  nu_cut_hot= (3.0 + betain + alphain) * 0.208367e11 * T_hot
+  graybody_hot = np.reshape(A_hot,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T_hot) / 1000.0 
+  powerlaw_hot = np.reshape(w_div_hot,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
+  graybody_hot[np.where(nu_in >= np.reshape(nu_cut_hot,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut_hot,(ng,1)))]
+
+  #Cold
+  w_num_cold = A_cold * K * (T_cold * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+  w_den_cold = (np.exp(3.0 + betain + alphain) - 1.0)
+  w_div_cold = w_num_cold/w_den_cold 
+  nu_cut_cold = (3.0 + betain + alphain) * 0.208367e11 * T_cold
+  graybody_cold = np.reshape(A_cold,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T_cold) / 1000.0 
+  powerlaw_cold = np.reshape(w_div_cold,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
+  graybody_cold[np.where(nu_in >= np.reshape(nu_cut_cold,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut_cold,(ng,1)))]
+
+  return graybody_hot+graybody_cold
+
+def fast_double_sed(m,wavelengths):
   nu_in = c * 1.e6 / wavelengths
 
   v = m.valuesdict()
@@ -295,9 +358,9 @@ def lambda_to_ghz(lam):
   return ghz
 
 def leja_mass_function(z,Mass=np.linspace(9,13,100),sfg=2):
-  #sfg = 2  -  All
   #sfg = 0  -  Quiescent 
   #sfg = 1  -  Star Forming
+  #sfg = 2  -  All
 
   nz=np.shape(z)
 
