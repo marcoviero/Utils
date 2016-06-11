@@ -200,6 +200,47 @@ def fast_Lir(m,zin): #Tin,betain,alphain,z):
   Lrf = Lir * conversion # Jy x Hz
   return Lrf
 
+def fast_double_Lir(m,zin): #Tin,betain,alphain,z):
+  '''I dont know how to do this yet'''
+  wavelength_range = np.linspace(8.,1000.,10.*992.) 
+
+  v = m.valuesdict()
+  betain = np.asarray(v['beta'])
+  alphain = np.asarray(v['alpha'])
+  A_hot= np.asarray(v['A_hot'])
+  A_cold= np.asarray(v['A_cold'])
+  T_hot = np.asarray(v['T_hot'])
+  T_cold = np.asarray(v['T_cold'])
+
+  #Hot
+  p_hot = Parameters()
+  p_hot.add('A', value = A_hot, vary = True)
+  p_hot.add('T_observed', value = T_hot, vary = True)
+  p_hot.add('beta', value = betain, vary = False)
+  p_hot.add('alpha', value = alphain, vary = False)
+  hot_sed = fast_sed(p_hot,wavelength_range)
+
+  #Hot
+  p_cold = Parameters()
+  p_cold.add('A', value = A_cold, vary = True)
+  p_cold.add('T_observed', value = T_cold, vary = True)
+  p_cold.add('beta', value = betain, vary = False)
+  p_cold.add('alpha', value = alphain, vary = False)
+  cold_sed = fast_sed(p_cold,wavelength_range)
+
+  nu_in = c * 1.e6 / wavelength_range
+  ns = len(nu_in)
+  
+  dnu = nu_in[0:ns-1] - nu_in[1:ns]
+  dnu = np.append(dnu[0],dnu)
+  Lir_hot = np.sum(hot_sed * dnu, axis=1)
+  Lir_cold = np.sum(cold_sed * dnu, axis=1)
+  conversion = 4.0 * np.pi *(1.0E-13 * cosmo.luminosity_distance(zin) * 3.08568025E22)**2.0 / L_sun # 4 * pi * D_L^2    units are L_sun/(Jy x Hz)
+
+  Lrf_hot = Lir_hot * conversion # Jy x Hz
+  Lrf_cold = Lir_cold * conversion # Jy x Hz
+  return [Lrf_hot, Lrf_cold]
+
 def fast_sed_fitter(wavelengths, fluxes, covar):
 
   fit_params = Parameters()
@@ -218,13 +259,13 @@ def fast_sed_fitter(wavelengths, fluxes, covar):
 
   return m
 
-def fast_double_sed_fitter(wavelengths, fluxes, covar):
+def fast_double_sed_fitter(wavelengths, fluxes, covar, T_cold=15.0, T_hot=30.0):
 
   fit_params = Parameters()
-  fit_params.add('A_hot', value = 1e-32, vary = True)
-  fit_params.add('A_cold', value = 1e-32, vary = True)
-  fit_params.add('T_hot', value = 40.0, vary = True, min = 25.0, max = 500.0)
-  fit_params.add('T_cold', value = 17.0, vary = True, min = 9.0, max = 23.0)
+  fit_params.add('A_hot', value = 1e-40, vary = True)#, min = 0.)
+  fit_params.add('A_cold', value = 1e-35, vary = True)#, min = 0.)
+  fit_params.add('T_hot', value = T_hot, vary = False, min = 9.0, max = 150.0)
+  fit_params.add('T_cold', value = T_cold, vary = False, min = 1.0, max = 20.0)
   fit_params.add('beta', value = 1.80, vary = False)
   fit_params.add('alpha', value = 2.0, vary = False)
 
@@ -247,9 +288,61 @@ def find_sed_min(p, wavelengths, fluxes, covar):
 
 def find_double_sed_min(p, wavelengths, fluxes, covar):
 
-  graybody = fast_double_sed(p,wavelengths) 
+  graybody_hot = fast_hot_sed(p,wavelengths) 
+  graybody_cold = fast_cold_sed(p,wavelengths) 
+  graybody = graybody_hot+graybody_cold
 
   return (fluxes - graybody) / covar
+
+def fast_hot_sed(m,wavelengths):
+  nu_in = c * 1.e6 / wavelengths
+
+  v = m.valuesdict()
+  A= np.asarray(v['A_hot'])
+  T = np.asarray(v['T_hot'])
+  betain = np.asarray(v['beta'])
+  alphain = np.asarray(v['alpha'])
+  ng = np.size(A)
+
+  ns = len(nu_in)
+  base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
+  expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
+  K = base * 10.0**expo
+  w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+  w_den = (np.exp(3.0 + betain + alphain) - 1.0)
+  w_div = w_num/w_den 
+  nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
+
+  graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
+  powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
+  graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
+
+  return graybody
+
+def fast_cold_sed(m,wavelengths):
+  nu_in = c * 1.e6 / wavelengths
+
+  v = m.valuesdict()
+  A= np.asarray(v['A_cold'])
+  T = np.asarray(v['T_cold'])
+  betain = np.asarray(v['beta'])
+  alphain = np.asarray(v['alpha'])
+  ng = np.size(A)
+
+  ns = len(nu_in)
+  base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
+  expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
+  K = base * 10.0**expo
+  w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+  w_den = (np.exp(3.0 + betain + alphain) - 1.0)
+  w_div = w_num/w_den 
+  nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
+
+  graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
+  powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
+  graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
+
+  return graybody
 
 def fast_double_sed(m,wavelengths):
   nu_in = c * 1.e6 / wavelengths
@@ -261,7 +354,8 @@ def fast_double_sed(m,wavelengths):
   T_cold = np.asarray(v['T_cold'])
   betain = np.asarray(v['beta'])
   alphain = np.asarray(v['alpha'])
-  ng = np.size(A)
+  ng_hot = np.size(A_hot)
+  ng_cold = np.size(A_cold)
 
   ns = len(nu_in)
   base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
@@ -273,22 +367,22 @@ def fast_double_sed(m,wavelengths):
   w_den_hot = (np.exp(3.0 + betain + alphain) - 1.0)
   w_div_hot = w_num_hot/w_den_hot 
   nu_cut_hot= (3.0 + betain + alphain) * 0.208367e11 * T_hot
-  graybody_hot = np.reshape(A_hot,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T_hot) / 1000.0 
-  powerlaw_hot = np.reshape(w_div_hot,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
-  graybody_hot[np.where(nu_in >= np.reshape(nu_cut_hot,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut_hot,(ng,1)))]
+  graybody_hot = np.reshape(A_hot,(ng_hot,1)) * nu_in**np.reshape(betain,(ng_hot,1)) * black(nu_in, T_hot) / 1000.0 
+  powerlaw_hot = np.reshape(w_div_hot,(ng_hot,1)) * nu_in**np.reshape(-1.0 * alphain,(ng_hot,1))
+  graybody_hot[np.where(nu_in >= np.reshape(nu_cut_hot,(ng_hot,1)))]=powerlaw_hot[np.where(nu_in >= np.reshape(nu_cut_hot,(ng_hot,1)))]
 
   #Cold
   w_num_cold = A_cold * K * (T_cold * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
   w_den_cold = (np.exp(3.0 + betain + alphain) - 1.0)
   w_div_cold = w_num_cold/w_den_cold 
   nu_cut_cold = (3.0 + betain + alphain) * 0.208367e11 * T_cold
-  graybody_cold = np.reshape(A_cold,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T_cold) / 1000.0 
-  powerlaw_cold = np.reshape(w_div_cold,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
-  graybody_cold[np.where(nu_in >= np.reshape(nu_cut_cold,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut_cold,(ng,1)))]
+  graybody_cold = np.reshape(A_cold,(ng_cold,1)) * nu_in**np.reshape(betain,(ng_cold,1)) * black(nu_in, T_cold) / 1000.0 
+  powerlaw_cold = np.reshape(w_div_cold,(ng_cold,1)) * nu_in**np.reshape(-1.0 * alphain,(ng_cold,1))
+  graybody_cold[np.where(nu_in >= np.reshape(nu_cut_cold,(ng_cold,1)))]=powerlaw_cold[np.where(nu_in >= np.reshape(nu_cut_cold,(ng_cold,1)))]
 
   return graybody_hot+graybody_cold
 
-def fast_double_sed(m,wavelengths):
+def fast_sed(m,wavelengths):
   nu_in = c * 1.e6 / wavelengths
 
   v = m.valuesdict()
