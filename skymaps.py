@@ -2,9 +2,13 @@ import pdb
 import six
 import numpy as np
 from astropy.io import fits
+import astropy.units as u
 from utils import bin_ndarray as rebin
 from utils import gauss_kern
 from utils import clean_nans
+from astropy import cosmology
+from astropy.cosmology import Planck15 as cosmo
+from astropy.cosmology import z_at_value
 
 class Skymaps:
 
@@ -155,6 +159,21 @@ class Field_catalogs:
 				#self.id_z_ms['z_'+str(znodes[iz]).replace('.','p')+'_'+str(znodes[iz+1]).replace('.','p')+'__m_'+str(mnodes[jm]).replace('.','p')+'_'+str(mnodes[jm+1]).replace('.','p')+'_qt'] = self.table.ID[ind_mz_qt].values 
 				self.id_z_ms['z_'+str(round(znodes[iz],3)).replace('.','p')+'_'+str(round(znodes[iz+1],3)).replace('.','p')+'__m_'+str(round(mnodes[jm],3)).replace('.','p')+'_'+str(round(mnodes[jm+1],3)).replace('.','p')+'_sf'] = self.table.ID[ind_mz_sf].values 
 				self.id_z_ms['z_'+str(round(znodes[iz],3)).replace('.','p')+'_'+str(round(znodes[iz+1],3)).replace('.','p')+'__m_'+str(round(mnodes[jm],3)).replace('.','p')+'_'+str(round(mnodes[jm+1],3)).replace('.','p')+'_qt'] = self.table.ID[ind_mz_qt].values 
+
+	def get_sf_qt_mass_lookback_time_bins(self, tnodes, mnodes):
+		self.id_lookt_mass = {}
+		age_universe = cosmo.age(0).value # 13.797617455819209 Gyr
+		znodes = np.array([z_at_value(cosmo.age,(age_universe - i) * u.Gyr) for i in tnodes])
+
+		for iz in range(len(znodes[:-1])):
+			for jm in range(len(mnodes[:-1])):
+				ind_mt_sf =( (self.table.sfg == 1) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+					(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) ) 
+				ind_mt_qt =( (self.table.sfg == 0) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+					(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) ) 
+
+				self.id_lookt_mass['lookt_'+str(round(tnodes[iz],3)).replace('.','p')+'_'+str(round(tnodes[iz+1],3)).replace('.','p')+'__m_'+str(round(mnodes[jm],3)).replace('.','p')+'_'+str(round(mnodes[jm+1],3)).replace('.','p')+'_sf'] = self.table.ID[ind_mt_sf].values 
+				self.id_lookt_mass['lookt_'+str(round(tnodes[iz],3)).replace('.','p')+'_'+str(round(tnodes[iz+1],3)).replace('.','p')+'__m_'+str(round(mnodes[jm],3)).replace('.','p')+'_'+str(round(mnodes[jm+1],3)).replace('.','p')+'_qt'] = self.table.ID[ind_mt_qt].values 
 
 	def get_sf_qt_agn_mass_redshift_bins(self, znodes, mnodes):
 		self.id_z_ms = {}
