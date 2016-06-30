@@ -63,6 +63,35 @@ def black(nu_in, T):
   return ret
 
 ## C
+def calzetti(lam,A_v,A_lam):
+  ''' Calzetti+ 2000 reddening law, see their eqs. 2-4.  Input parameters
+    are a vector lam (angstroms) and a scalar A_v.  The output is
+    A_lam (the extinction in magnitudes for each value in lam).
+    Adapted from the calz_unred procedure in the IDL astro lib.
+  '''
+  R_V = 4.05             # default value from Calzetti
+  ebv = A_v / R_v
+  w1 = np.where((lam >= 6300) & (lam <= 22000))
+  w2 = np.where((lam >=  912) & (lam <  6300))
+  c1 = len(w1)
+  c2 = len(w2)
+  x  = 10000.0/lam      # Wavelength in inverse microns
+
+  if((c1 + c2) != N_elements(lam)): 
+    'Warning - some elements of wavelength vector outside valid domain'
+
+  klam = np.zeros(len(lam))
+
+  if(c1 > 0):
+    klam[w1] = 2.659*(-1.857 + 1.040 * x[w1]) + R_V
+
+  if(c2 > 0):
+    klam[w2] = 2.659*(poly(x[w2], [-2.156, 1.509, -0.198, 0.011])) + R_V
+
+  A_lam = klam * ebv
+
+  return A_lam
+
 def circle_mask(pixmap,radius_in,pixres):
   ''' Makes a 2D circular image of zeros and ones'''
 
@@ -241,12 +270,12 @@ def fast_double_Lir(m,zin): #Tin,betain,alphain,z):
   Lrf_cold = Lir_cold * conversion # Jy x Hz
   return [Lrf_hot, Lrf_cold]
 
-def fast_sed_fitter(wavelengths, fluxes, covar):
+def fast_sed_fitter(wavelengths, fluxes, covar, betain = 1.8):
 
   fit_params = Parameters()
   fit_params.add('A', value = 1e-32, vary = True)
   fit_params.add('T_observed', value = 24.0, vary = True)
-  fit_params.add('beta', value = 1.80, vary = False)
+  fit_params.add('beta', value = betain, vary = False)
   fit_params.add('alpha', value = 2.0, vary = False)
 
   #nu_in = c * 1.e6 / wavelengths
@@ -537,6 +566,17 @@ def planck(wav, T):
 
   return intensity
 
+def poly(X,C):
+  n = len(C) - 1 # Find degree of polynomial
+  if (n == 0):
+    return x*0.0 + c[0]
+  else:
+    y = c[n]
+    for i in range(n-1)[::-1]:
+      y = y * x + c[i]
+    
+    return y
+
 ## R
 #def round_sig(x, sig=2):
 #  return np.round(x, sig-int(np.floor(np.log10(x)))-1)
@@ -619,6 +659,10 @@ def T_fun(p,zed):
 def T_fit(p, zed, T, Terr):
   Temp = T_fun(p,zed)
   return (T - Temp)/Terr
+
+## V
+
+#def viero_2013_luminosities(z,m,sfg=1):
 
 ## Z
 def zero_pad(cmap,l2=0):
