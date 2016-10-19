@@ -527,6 +527,35 @@ def L_fit(p, zed, L, Lerr):
   lum = L_fun(p,zed)
   return (L - lum)/Lerr
 
+## M
+
+def moster_shm(z, Mh): # = 0, nm  =100.0, mmin = 10.0, mmax = 15.0):
+
+  #if Mh == 0:
+  #  Mh=np.log10(loggen(10 ** mmin,10 ** mmax,nm))
+
+  #Moster 2013 eqn 2
+
+  M_10=11.590
+  M_11=1.195
+  N_10=0.0351
+  N_11=-0.0247
+  b_10=1.376
+  b_11=-0.826
+  g_10=0.608
+  g_11=0.329
+
+  M_1 = 10.0 ** (M_10 + M_11 * (z / (z+1.0) ))
+  N   = N_10 + N_11 * (z/ (z+1.0) )
+  b   = b_10 + b_11 * (z/ (z+1.0) )
+  gam = g_10 + g_11 * (z/ (z+1.0) )
+
+  m_over_M=2.*N/( (Mh/M_1) ** (-1.0*b) + (Mh/M_1) ** (gam)  )
+
+  m_max=M_1*(b/gam) ** (1./(b+gam))
+
+  return m_over_M
+
 ## P
 def pad_and_smooth_psf(mapin, psfin):
 
