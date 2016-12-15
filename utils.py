@@ -10,6 +10,7 @@ from lmfit import Parameters, minimize, fit_report
 pi=3.141592653589793
 L_sun = 3.839e26 # W
 c = 299792458.0 # m/s
+conv_sfr=1.728e-10/10 ** (.23)
 
 ## B
 def bin_ndarray(ndarray, new_shape, operation='sum'):
@@ -473,6 +474,12 @@ def get_stellar_mass_at_number_density(zeds,nden,sfg=2):
 
   return sm
 
+def ghz_to_lambda(ghz):
+  hz = 1e9*ghz
+  c  = 3e8
+  lam=c/hz * 1e6
+  return lam
+
 ## L
 def lambda_to_ghz(lam):
   c  = 3e8
@@ -691,7 +698,33 @@ def T_fit(p, zed, T, Terr):
 
 ## V
 
-#def viero_2013_luminosities(z,m,sfg=1):
+def viero_2013_luminosities(z,mass,sfg=1):
+  import numpy as np
+  y = np.array([[-7.2477881 , 3.1599509  , -0.13741485],
+               [-1.6335178 , 0.33489572 , -0.0091072162],
+               [-7.7579780 , 1.3741780  , -0.061809584 ]])
+  ms=np.shape(y)
+  npp=ms[0]
+  nz=len(z)
+  nm=len(mass)
+
+  ex=np.zeros([nm,nz,npp])
+  logl=np.zeros([nm,nz])
+
+  for iz in range(nz):
+    for im in range(nm):
+      for ij in range(npp):
+         for ik in range(npp):
+          ex[im,iz,ij] += y[ij,ik] * mass[im]**(ik)
+      for ij in range(npp):
+        logl[im,iz] += ex[im,iz,ij] * z[iz]**(ij)
+
+  T_0 = 27.0
+  z_T = 1.0
+  epsilon_T = 0.4
+  Tdust = T_0 * ((1+np.array(z))/(1.0+z_T))**(epsilon_T)
+
+  return [logl,Tdust]
 
 ## Z
 def zero_pad(cmap,l2=0):

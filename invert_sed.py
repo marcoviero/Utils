@@ -238,6 +238,35 @@ def single_simple_flux_from_greybody(lambdavector, Trf = None, b = 2.0, Lrf = No
 	return flux_mJy
 
 
+def amplitude_of_best_fit_greybody(lambdavector, Trf = None, b = 2.0, Lrf = None, zin = None):
+	'''
+	Same as single_simple_flux_from_greybody, but to made an amplitude lookup table
+	'''
+
+	nwv = len(lambdavector)
+	nuvector = c * 1.e6 / lambdavector # Hz
+
+	nsed = 1e4
+	lambda_mod = loggen(1e3, 8.0, nsed) # microns
+	nu_mod = c * 1.e6/lambda_mod # Hz
+
+	#cosmo = Planck15#(H0 = 70.5 * u.km / u.s / u.Mpc, Om0 = 0.273)
+	conversion = 4.0 * np.pi *(1.0E-13 * cosmo.luminosity_distance(zin) * 3.08568025E22)**2.0 / L_sun # 4 * pi * D_L^2    units are L_sun/(Jy x Hz)
+
+	Lir = Lrf / conversion # Jy x Hz
+
+	Ain = 1.0e-36 #good starting parameter
+	betain =  b 
+	alphain=  2.0
+
+	fit_params = Parameters()
+	fit_params.add('Ain', value= Ain)
+
+	#THE LM FIT IS HERE
+	Pfin = minimize(sedint, fit_params, args=(nu_mod,Lir.value,Trf/(1.+zin),b,alphain))
+	
+	return fit_params['Ain']
+
 
 
 

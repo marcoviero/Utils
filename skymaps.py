@@ -140,24 +140,34 @@ class Field_catalogs:
 		self.table['sfg'] = sfg
 	#def separate_nuv_r(self):
 
+	def separate_5pops(self, Fcut = 25, MIPS24_cut = 200.0):
+		sfg = np.ones(self.nsrc)
+		z0 = 9.3
+		slope = (12.0 - 9.3 ) / (1.25)
+		for i in range(self.nsrc):
+			if (self.table.mips24[i] >= (MIPS24_cut+100.)) & (self.table.F_ratio[i] < Fcut): 
+				sfg[i]=4
+			elif (self.table.LMASS[i] > self.table.z_peak[i] * slope + z0) & (self.table.mips24[i] > MIPS24_cut): 
+				sfg[i]=3
+			elif (self.table.F_ratio[i] >= Fcut):
+				sfg[i]=2
+			else:
+				if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
+					if (self.table.z_peak.values[i] < 1):
+						if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.69) ): sfg[i]=0
+					if (self.table.z_peak.values[i] > 1):
+						if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.59) ): sfg[i]=0
+		self.table['sfg'] = sfg
 
 	def get_sf_qt_mass_redshift_bins(self, znodes, mnodes):
 		self.id_z_ms = {}
 		for iz in range(len(znodes[:-1])):
 			for jm in range(len(mnodes[:-1])):
-				#ind_mz_sf =( (self.table.sfg == 1) & (self.table.z_peak >= znodes[iz]) & (self.table.z_peak < znodes[iz+1]) & 
-				#	(10**self.table.LMASS >= 10**mnodes[jm]) & (10**self.table.LMASS < 10**mnodes[jm+1]) ) 
-				#ind_mz_qt =( (self.table.sfg == 0) & (self.table.z_peak >= znodes[iz]) & (self.table.z_peak < znodes[iz+1]) & 
-				#	(10**self.table.LMASS >= 10**mnodes[jm]) & (10**self.table.LMASS < 10**mnodes[jm+1]) ) 
 				ind_mz_sf =( (self.table.sfg == 1) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
 					(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) ) 
 				ind_mz_qt =( (self.table.sfg == 0) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
 					(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) ) 
 
-				#self.id_z_ms['z_'+str(znodes[iz])+'-'+str(znodes[iz+1])+'__m_'+str(mnodes[jm])+'-'+str(mnodes[jm+1])+'_sf'] = self.table.ID[ind_mz_sf].values 
-				#self.id_z_ms['z_'+str(znodes[iz])+'-'+str(znodes[iz+1])+'__m_'+str(mnodes[jm])+'-'+str(mnodes[jm+1])+'_qt'] = self.table.ID[ind_mz_qt].values 
-				#self.id_z_ms['z_'+str(znodes[iz]).replace('.','p')+'_'+str(znodes[iz+1]).replace('.','p')+'__m_'+str(mnodes[jm]).replace('.','p')+'_'+str(mnodes[jm+1]).replace('.','p')+'_sf'] = self.table.ID[ind_mz_sf].values 
-				#self.id_z_ms['z_'+str(znodes[iz]).replace('.','p')+'_'+str(znodes[iz+1]).replace('.','p')+'__m_'+str(mnodes[jm]).replace('.','p')+'_'+str(mnodes[jm+1]).replace('.','p')+'_qt'] = self.table.ID[ind_mz_qt].values 
 				self.id_z_ms['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_sf'] = self.table.ID[ind_mz_sf].values 
 				self.id_z_ms['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_qt'] = self.table.ID[ind_mz_qt].values 
 
@@ -190,6 +200,40 @@ class Field_catalogs:
 				self.id_z_ms['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_sf'] = self.table.ID[ind_mz_sf].values 
 				self.id_z_ms['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_qt'] = self.table.ID[ind_mz_qt].values 
 				self.id_z_ms['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_agn'] = self.table.ID[ind_mz_agn].values 
+
+	def get_5pops_mass_redshift_bins(self, znodes, mnodes, linear_mass=1):
+		#pop_suf = ['sf','qt','agn','sb','loc']
+		self.id_z_ms_5pop = {}
+		for iz in range(len(znodes[:-1])):
+			for jm in range(len(mnodes[:-1])):
+				if linear_mass == 1:
+					ind_mz_sf =( (self.table.sfg == 1) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+						(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) ) 
+					ind_mz_qt =( (self.table.sfg == 0) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+						(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) ) 
+					ind_mz_agn =( (self.table.sfg == 2) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+						(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) ) 
+					ind_mz_sb =( (self.table.sfg == 4) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+						(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) ) 
+					ind_mz_loc=( (self.table.sfg == 3) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+						(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) ) 
+				else:
+					ind_mz_sf =( (self.table.sfg == 1) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+						(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) ) 
+					ind_mz_qt =( (self.table.sfg == 0) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+						(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) ) 
+					ind_mz_agn =( (self.table.sfg == 2) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+						(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) ) 
+					ind_mz_sb =( (self.table.sfg == 4) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+						(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) ) 
+					ind_mz_loc=( (self.table.sfg == 3) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) & 
+						(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) ) 
+
+				self.id_z_ms_5pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_sf'] = self.table.ID[ind_mz_sf].values 
+				self.id_z_ms_5pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_qt'] = self.table.ID[ind_mz_qt].values 
+				self.id_z_ms_5pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_agn'] = self.table.ID[ind_mz_agn].values 
+				self.id_z_ms_5pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_sb'] = self.table.ID[ind_mz_sb].values 
+				self.id_z_ms_5pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_loc'] = self.table.ID[ind_mz_loc].values 
 
 	def get_general_redshift_bins(self, znodes, mnodes, sfg = 1, suffx = '', Fcut = 25, Ahat = 1.0, initialize_pop = False):
 		if initialize_pop == True: self.id_z_ms = {}
