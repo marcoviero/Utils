@@ -297,7 +297,7 @@ def invert_sed_neural_net(lam, Trf, Lrf, zin, wpath = '/data/cmbsims/nn_weights/
 
 	predicted_amplitude = 1e-40 * 10**reg.predict(rearrange_x)
 
-	fluxes = sed_direct(predicted_amplitude,np.array([nuvector]),Trf/(1.+zin),betain=2.0,alphain=2.0)
+	fluxes = sed_direct(predicted_amplitude, np.array([nuvector]), Trf/(1.+zin), betain=2.0, alphain=2.0)
 	return fluxes
 
 
