@@ -1,5 +1,6 @@
 import pdb
 import numpy as np
+import cPickle as pickle
 from utils import black
 from utils import loggen
 #from astropy.cosmology import FlatLambdaCDM
@@ -43,6 +44,28 @@ def sed(p, nu_in, T, betain, alphain):
 
 	graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
 	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
+	graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
+
+	return graybody
+
+def sed_direct(A, nu_in, T, betain, alphain): 
+	'''
+	'''
+	ng = np.size(A)
+
+	ns = len(nu_in)
+	base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
+	expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
+	K = base * 10.0**expo
+	w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+	w_den = (np.exp(3.0 + betain + alphain) - 1.0)
+	w_div = w_num/w_den 
+	nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
+
+	#graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(np.repeat(betain,ng),[ng,1]) * black(nu_in, T) / 1000.0 
+	#powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(np.repeat(alphain,ng),[ng,1]) 
+	graybody = np.reshape(A,(ng,1)) * nu_in**betain * black(nu_in, T) / 1000.0 
+	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**alphain
 	graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
 	return graybody
@@ -238,13 +261,10 @@ def single_simple_flux_from_greybody(lambdavector, Trf = None, b = 2.0, Lrf = No
 	return flux_mJy
 
 
-def amplitude_of_best_fit_greybody(lambdavector, Trf = None, b = 2.0, Lrf = None, zin = None):
+def amplitude_of_best_fit_greybody(Trf = None, b = 2.0, Lrf = None, zin = None):
 	'''
 	Same as single_simple_flux_from_greybody, but to made an amplitude lookup table
 	'''
-
-	nwv = len(lambdavector)
-	nuvector = c * 1.e6 / lambdavector # Hz
 
 	nsed = 1e4
 	lambda_mod = loggen(1e3, 8.0, nsed) # microns
@@ -264,8 +284,23 @@ def amplitude_of_best_fit_greybody(lambdavector, Trf = None, b = 2.0, Lrf = None
 
 	#THE LM FIT IS HERE
 	Pfin = minimize(sedint, fit_params, args=(nu_mod,Lir.value,Trf/(1.+zin),b,alphain))
-	
-	return fit_params['Ain']
+	#pdb.set_trace()
+	return Pfin.params['Ain'].value
+
+def invert_sed_neural_net(lam, Trf, Lrf, zin, wpath = '/data/cmbsims/nn_weights/', wfile = 'SED_amplitude_weights_from_neural_network_logistic_100layers_N8000.p'):
+
+	reg = pickle.load( open( wpath + wfile, "rb" ) )
+
+	nuvector = c * 1.e6 / lam
+
+	rearrange_x = np.transpose(np.array([Trf, Lrf, zin]))
+
+	predicted_amplitude = 1e-40 * 10**reg.predict(rearrange_x)
+
+	fluxes = sed_direct(predicted_amplitude,np.array([nuvector]),Trf/(1.+zin),betain=2.0,alphain=2.0)
+	return fluxes
+
+
 
 
 

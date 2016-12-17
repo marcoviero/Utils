@@ -1,5 +1,6 @@
 import pdb
 import numpy as np
+import cPickle as pickle
 from numpy import zeros
 from numpy import shape
 #from astropy.cosmology import FlatLambdaCDM
@@ -726,6 +727,34 @@ def viero_2013_luminosities(z,mass,sfg=1):
 
   return [logl,Tdust]
 
+def viero_2013_luminosities_fast(z,mass,sfg=1):
+  import numpy as np
+  y = np.array([[-7.2477881 , 3.1599509  , -0.13741485],
+               [-1.6335178 , 0.33489572 , -0.0091072162],
+               [-7.7579780 , 1.3741780  , -0.061809584 ]])
+  ms=np.shape(y)
+  npp=ms[0]
+  nz=len(z)
+  nm=len(mass)
+
+  ex=np.zeros([nm,nz,npp])
+  logl=np.zeros([nm,nz])
+
+  for ij in range(npp):
+    pdb.set_trace()
+    for ik in range(npp):
+      ex[:,:,ij] += y[ij,ik] * mass**(ik)
+      pdb.set_trace()
+    for ij in range(npp):
+      logl += ex[:,:,ij] * z**(ij)
+      pdb.set_trace()
+
+  T_0 = 27.0
+  z_T = 1.0
+  epsilon_T = 0.4
+  Tdust = T_0 * ((1+np.array(z))/(1.0+z_T))**(epsilon_T)
+
+  return [logl,Tdust]
 ## Z
 def zero_pad(cmap,l2=0):
   ms=np.shape(cmap)
@@ -737,3 +766,14 @@ def zero_pad(cmap,l2=0):
   else:
     zmap=cmap
   return zmap
+
+def viero_2013_luminosities_neural_net(z,mass,sfg=1, wpath = '/data/simstack/pickles/', wfile = 'LMz_V13_weights_from_neural_network_100layers_N400_SFG.p' ):
+  '''
+  First attempt at fitting the LMz relation with a neural network.  Not optimized yet.  Also not done for quiescent galaxies.  
+  '''
+
+  reg_sfg = pickle.load( open( wpath + wfile, "rb" ) )
+  rearrange_x = np.transpose(np.array([mass, z]))
+
+  return reg_sfg.predict(rearrange_x)
+
