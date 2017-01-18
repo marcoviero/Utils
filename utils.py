@@ -767,7 +767,7 @@ def zero_pad(cmap,l2=0):
     zmap=cmap
   return zmap
 
-def viero_2013_luminosities_neural_net(z,mass,sfg=1, wpath = '/data/simstack/pickles/', wfile = 'LMz_V13_weights_from_neural_network_100layers_N400_SFG.p' ):
+def viero_2013_luminosities_neural_net(z,mass,sfg=1, wpath = '/data/simstack/pickles/', wfile = 'SFR_Mz_Jason_weights_from_neural_network_300layers_N201_SFG.p' ):
   '''
   First attempt at fitting the LMz relation with a neural network.  Not optimized yet.  Also not done for quiescent galaxies.  
   '''
@@ -775,5 +775,5 @@ def viero_2013_luminosities_neural_net(z,mass,sfg=1, wpath = '/data/simstack/pic
   reg_sfg = pickle.load( open( wpath + wfile, "rb" ) )
   rearrange_x = np.transpose(np.array([mass, z]))
 
-  return reg_sfg.predict(rearrange_x)
-
+  #pdb.set_trace()
+  return np.log10(10**reg_sfg.predict(rearrange_x) / conv_sfr)

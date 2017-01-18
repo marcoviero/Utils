@@ -65,7 +65,7 @@ def sed_direct(A, nu_in, T, betain, alphain):
 	#graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(np.repeat(betain,ng),[ng,1]) * black(nu_in, T) / 1000.0 
 	#powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(np.repeat(alphain,ng),[ng,1]) 
 	graybody = np.reshape(A,(ng,1)) * nu_in**betain * black(nu_in, T) / 1000.0 
-	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**alphain
+	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**(-1.0 * alphain)
 	graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
 	return graybody
