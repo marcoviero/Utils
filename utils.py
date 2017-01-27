@@ -682,6 +682,23 @@ def smooth_psf(mapin, psfin):
 
   return smmap
 
+def string_is_true(sraw):
+    """Is string true? Returns boolean value.
+    """
+    s       = sraw.lower() # Make case-insensitive
+
+    # Lists of acceptable 'True' and 'False' strings
+    true_strings    = ['true', 't', 'yes', 'y', '1']
+    false_strings    = ['false', 'f', 'no', 'n', '0']
+    if s in true_strings:
+        return True
+    elif s in false_strings:
+        return False
+    else:
+        logging.warning("Input not recognized for parameter: %s" % (key))
+        logging.warning("You provided: %s" % (sraw))
+        raise
+        
 def solid_angle_from_fwhm(fwhm_arcsec):
   sa = np.pi*(fwhm_arcsec / 3600.0 * np.pi / 180.0)**2.0 / (4.0 * np.log(2.0))
   return sa
