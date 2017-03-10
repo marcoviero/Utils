@@ -1,17 +1,35 @@
 import pdb
 import numpy as np
-import cPickle as pickle
 from numpy import zeros
 from numpy import shape
+import cPickle as pickle
 #from astropy.cosmology import FlatLambdaCDM
 from astropy.cosmology import Planck15 as cosmo
 import astropy.units as u
 from scipy.ndimage.filters import gaussian_filter
+import scipy.io
+from scipy import fftpack
 from lmfit import Parameters, minimize, fit_report
+from radial_data import radial_data
 pi=3.141592653589793
 L_sun = 3.839e26 # W
 c = 299792458.0 # m/s
 conv_sfr=1.728e-10/10 ** (.23)
+
+## A
+
+def alex_power_spec(map1, map2=None, deltal = 1, pixsize = 5.0):
+
+  dims = np.shape(map1)
+  if (map2 != None):
+    spec = fftpack.fftshift(fftpack.fft2(map1)) * np.conj(fftpack.fftshift(fftpack.fft2(map2))) * (pi*pixsize/10800./60.)**2.0 * (dims[0]*dims[1]) 
+  else:
+    spec = np.abs(fftpack.fftshift(fftpack.fft2(map1))*(pi*pixsize/10800./60.))**2.0 * (dims[0]*dims[1])
+
+  spec1d = radial_data(spec, annulus_width = deltal)
+
+  return spec1d
+
 
 ## B
 def bin_ndarray(ndarray, new_shape, operation='sum'):
@@ -449,6 +467,19 @@ def find_nearest_index(array,value):
     return idx
 
 ## G
+def gamma_rj(Td,z,nu_obs):
+    zin = 1.000001 + z
+    #if nu_obs[0] > 5000:
+    #    nu_in = nu_obs
+    #else:
+    #    nu_in = nu_obs * 1e9
+        
+    h = 6.62607004e-34 #m2 kg / s  #4.13e-15 #eV/s
+    k = 1.38064852e-23 #m2 kg s-2 K-1 8.617e-5 #eV/K
+    num = h * nu_obs * zin / (k*Td)
+    den = np.exp(num) - 1.0
+    return num/den
+
 def gauss_kern(fwhm, side, pixsize):
   ''' Create a 2D Gaussian (size= side x side)'''
 
@@ -480,6 +511,34 @@ def ghz_to_lambda(ghz):
   c  = 3e8
   lam=c/hz * 1e6
   return lam
+
+## I
+
+def idl_restore(tfname):
+  sav = scipy.io.idl.readsav( tfname )
+  return sav
+
+## K
+
+def KLT(a):
+    """
+    Returns Karhunen Loeve Transform of the input and the transformation matrix and eigenval
+    
+    Ex:
+    import numpy as np
+    a  = np.array([[1,2,4],[2,3,10]])
+    
+    kk,m = KLT(a)
+    print kk
+    print m
+    
+    # to check, the following should return the original a
+    print np.dot(kk.T,m).T
+        
+    """
+    val,vec = np.linalg.eig(np.cov(a))
+    klt = np.dot(vec,a)
+    return klt,vec,val
 
 ## L
 def lambda_to_ghz(lam):
@@ -702,6 +761,15 @@ def string_is_true(sraw):
 def solid_angle_from_fwhm(fwhm_arcsec):
   sa = np.pi*(fwhm_arcsec / 3600.0 * np.pi / 180.0)**2.0 / (4.0 * np.log(2.0))
   return sa
+
+def subset_averages(table,radec_ids,feature):
+  ''' Estimate the average value in the bin of the feature in question'''
+  aves = {}
+  for k in radec_ids.keys():
+    all_values  = clean_nans(table[feature][table.ID.isin(radec_ids[k])].values)
+    ave = np.mean(all_values[all_values != -99.9])
+    aves[k] = ave
+  return aves
 
 ## T
 def T_fun(p,zed):
