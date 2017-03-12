@@ -211,6 +211,19 @@ class Field_catalogs:
 						if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.59) ): sfg[i]=0
 		self.table['sfg'] = sfg
 
+	def separate_3pops(self,  age_cut = 7.4):
+		sfg = np.ones(self.nsrc)
+		for i in range(self.nsrc):
+			if (self.table.lage[i] <= age_cut):
+				sfg[i]=2
+			else:
+				if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
+					if (self.table.z_peak.values[i] < 1):
+						if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.69) ): sfg[i]=0
+					if (self.table.z_peak.values[i] > 1):
+						if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.59) ): sfg[i]=0
+		self.table['sfg'] = sfg
+
 	def separate_4pops(self, Fcut = 60, age_cut = 7.5):
 		sfg = np.ones(self.nsrc)
 		for i in range(self.nsrc):
