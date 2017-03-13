@@ -356,7 +356,7 @@ class Field_catalogs:
 
 	def get_3pops_mass_redshift_bins(self, znodes, mnodes, linear_mass=1):
 		#pop_suf = ['sf','qt','sb']
-		self.id_z_ms_4pop = {}
+		self.id_z_ms_3pop = {}
 		for iz in range(len(znodes[:-1])):
 			for jm in range(len(mnodes[:-1])):
 				if linear_mass == 1:
@@ -364,19 +364,19 @@ class Field_catalogs:
 						(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) )
 					ind_mz_qt =( (self.table.sfg == 0) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
 						(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) )
-					ind_mz_sb =( (self.table.sfg == 3) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
+					ind_mz_sb =( (self.table.sfg == 2) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
 						(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) )
 				else:
 					ind_mz_sf =( (self.table.sfg == 1) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
 						(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) )
 					ind_mz_qt =( (self.table.sfg == 0) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
 						(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) )
-					ind_mz_sb =( (self.table.sfg == 3) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
+					ind_mz_sb =( (self.table.sfg == 2) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
 						(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) )
 
-				self.id_z_ms_4pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_sf'] = self.table.ID[ind_mz_sf].values
-				self.id_z_ms_4pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_qt'] = self.table.ID[ind_mz_qt].values
-				self.id_z_ms_4pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_sb'] = self.table.ID[ind_mz_sb].values
+				self.id_z_ms_3pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_sf'] = self.table.ID[ind_mz_sf].values
+				self.id_z_ms_3pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_qt'] = self.table.ID[ind_mz_qt].values
+				self.id_z_ms_3pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_sb'] = self.table.ID[ind_mz_sb].values
 
 	def get_4pops_mass_redshift_bins(self, znodes, mnodes, linear_mass=1):
 		#pop_suf = ['sf','qt','agn','sb']
