@@ -356,7 +356,7 @@ class Field_catalogs:
 
 	def get_3pops_mass_redshift_bins(self, znodes, mnodes, linear_mass=1):
 		#pop_suf = ['sf','qt','sb']
-		self.id_z_ms$MAPSPATH_3pop = {}
+		self.id_z_ms_3pop = {}
 		for iz in range(len(znodes[:-1])):
 			for jm in range(len(mnodes[:-1])):
 				if linear_mass == 1:
