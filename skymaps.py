@@ -211,10 +211,12 @@ class Field_catalogs:
 						if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.59) ): sfg[i]=0
 		self.table['sfg'] = sfg
 
-	def separate_3pops(self,  age_cut = 7.4):
+	def separate_4pops(self, Fcut = 50, age_cut = 7.5):
 		sfg = np.ones(self.nsrc)
 		for i in range(self.nsrc):
 			if (self.table.lage[i] <= age_cut):
+				sfg[i]=3
+			elif (self.table.F_ratio[i] >= Fcut):
 				sfg[i]=2
 			else:
 				if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
@@ -224,12 +226,10 @@ class Field_catalogs:
 						if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.59) ): sfg[i]=0
 		self.table['sfg'] = sfg
 
-	def separate_4pops(self, Fcut = 60, age_cut = 7.5):
+	def separate_3pops(self,  age_cut = 7.4):
 		sfg = np.ones(self.nsrc)
 		for i in range(self.nsrc):
 			if (self.table.lage[i] <= age_cut):
-				sfg[i]=3
-			elif (self.table.F_ratio[i] >= Fcut):
 				sfg[i]=2
 			else:
 				if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
@@ -356,7 +356,7 @@ class Field_catalogs:
 
 	def get_3pops_mass_redshift_bins(self, znodes, mnodes, linear_mass=1):
 		#pop_suf = ['sf','qt','sb']
-		self.id_z_ms_3pop = {}
+		self.id_z_ms$MAPSPATH_3pop = {}
 		for iz in range(len(znodes[:-1])):
 			for jm in range(len(mnodes[:-1])):
 				if linear_mass == 1:
