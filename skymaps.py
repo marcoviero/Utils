@@ -211,7 +211,7 @@ class Field_catalogs:
 						if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.59) ): sfg[i]=0
 		self.table['sfg'] = sfg
 
-	def separate_4pops(self, Fcut = 50, age_cut = 7.5):
+	def separate_4pops(self, Fcut = 40, age_cut = 7.5):
 		sfg = np.ones(self.nsrc)
 		for i in range(self.nsrc):
 			if (self.table.lage[i] <= age_cut):
