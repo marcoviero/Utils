@@ -1,4 +1,5 @@
 import pdb
+import gc
 import numpy as np
 from numpy import zeros
 from numpy import shape
@@ -15,6 +16,7 @@ pi=3.141592653589793
 L_sun = 3.839e26 # W
 c = 299792458.0 # m/s
 conv_sfr=1.728e-10/10 ** (.23)
+gc.enable()
 
 ## A
 
@@ -22,7 +24,7 @@ def alex_power_spec(map1, map2=None, deltal = 1, pixsize = 5.0):
 
   dims = np.shape(map1)
   if (map2 != None):
-    spec = fftpack.fftshift(fftpack.fft2(map1)) * np.conj(fftpack.fftshift(fftpack.fft2(map2))) * (pi*pixsize/10800./60.)**2.0 * (dims[0]*dims[1]) 
+    spec = fftpack.fftshift(fftpack.fft2(map1)) * np.conj(fftpack.fftshift(fftpack.fft2(map2))) * (pi*pixsize/10800./60.)**2.0 * (dims[0]*dims[1])
   else:
     spec = np.abs(fftpack.fftshift(fftpack.fft2(map1))*(pi*pixsize/10800./60.))**2.0 * (dims[0]*dims[1])
 
@@ -77,9 +79,9 @@ def black(nu_in, T):
   a1 = 4.7993e-11   # h/k
 
   num = a0 * nu_in**3.0
-  den = np.exp(a1 * np.outer(1.0/T,nu_in)) - 1.0 
-  ret = num / den                 
-  
+  den = np.exp(a1 * np.outer(1.0/T,nu_in)) - 1.0
+  ret = num / den
+
   return ret
 
 ## C
@@ -97,7 +99,7 @@ def calzetti(lam,A_v,A_lam):
   c2 = len(w2)
   x  = 10000.0/lam      # Wavelength in inverse microns
 
-  if((c1 + c2) != N_elements(lam)): 
+  if((c1 + c2) != N_elements(lam)):
     'Warning - some elements of wavelength vector outside valid domain'
 
   klam = np.zeros(len(lam))
@@ -123,7 +125,7 @@ def circle_mask(pixmap,radius_in,pixres):
   beforey = np.log2(yy)
   if beforex != beforey:
     if beforex > beforey:
-      before = beforex 
+      before = beforex
     else:
       before = beforey
   else: before = beforey
@@ -136,8 +138,9 @@ def circle_mask(pixmap,radius_in,pixres):
   circ = np.zeros([pad_side, pad_side])
   ind_one = np.where(dist_array <= radius)
   circ[ind_one] = 1.
+  #pdb.set_trace()
   mask  = np.real( np.fft.ifft2( np.fft.fft2(circ) *
-          np.fft.fft2(outmap)) 
+          np.fft.fft2(outmap))
           ) * pad_side * pad_side
   mask = np.round(mask)
   ind_holes = np.where(mask >= 1.0)
@@ -162,7 +165,7 @@ def comoving_distance(z,h=cosmo.h,OmM=cosmo.Om0,OmL=cosmo.Ode0,Omk=cosmo.Ok0,dz=
   H0 = cosmo.H0.value #km / s / Mpc
   D_hubble = 3000. / h # h^{-1} Mpc = 9.26e25 / h; (meters)
   #cosmo = FlatLambdaCDM(H0 = H0 * u.km / u.s / u.Mpc, Om0 = OmM)
-  n_z = z/dz 
+  n_z = z/dz
   i_z = np.arange(n_z)*dz
   D_c = 0.0
   for i in i_z:
@@ -193,10 +196,10 @@ def comoving_number_density(number, area, z1, z2, ff=1.0, mpc=None, verbose=None
   return comovnumden
 
 def comoving_volume_given_area(area, zz1, zz2, mpc=None, arcmin=None):
-  if arcmin != None: 
-      ff = 3600. 
+  if arcmin != None:
+      ff = 3600.
   else:
-    ff=1. 
+    ff=1.
   vol0=comoving_volume(zz1,zz2,mpc=mpc)
   vol=((area*ff)/(180./pi)**2.)/(4.*pi)*vol0
 
@@ -205,12 +208,12 @@ def comoving_volume_given_area(area, zz1, zz2, mpc=None, arcmin=None):
 def cumulative_number_density(z,Mass=np.linspace(9,13,100),sfg=2):
   dM = Mass[1] - Mass[0]
   smf = dM * leja_mass_function(z,Mass=Mass,sfg=sfg)
-  return np.cumsum(smf[::-1])[::-1] 
+  return np.cumsum(smf[::-1])[::-1]
 
 ## D
 def dist_idl(n1,m1=None):
   ''' Copy of IDL's dist.pro
-  Create a rectangular array in which each element is 
+  Create a rectangular array in which each element is
   proportinal to its frequency'''
 
   if m1 == None:
@@ -227,7 +230,7 @@ def dist_idl(n1,m1=None):
     y = np.sqrt(x + i ** 2.)
     a[:,i] = y
     if i != 0:
-      a[:,m1-i]=y 
+      a[:,m1-i]=y
 
   return a
 
@@ -235,12 +238,12 @@ def dist_idl(n1,m1=None):
 def fast_Lir(m,zin): #Tin,betain,alphain,z):
   '''I dont know how to do this yet'''
   #wavelength_range = np.logspace(np.log10(8.),np.log10(1000.),10000.)
-  wavelength_range = np.linspace(8.,1000.,10.*992.) 
+  wavelength_range = np.linspace(8.,1000.,10.*992.)
   model_sed = fast_sed(m,wavelength_range)
 
   nu_in = c * 1.e6 / wavelength_range
   ns = len(nu_in)
-  
+
   dnu = nu_in[0:ns-1] - nu_in[1:ns]
   dnu = np.append(dnu[0],dnu)
   Lir = np.sum(model_sed * dnu, axis=1)
@@ -251,7 +254,7 @@ def fast_Lir(m,zin): #Tin,betain,alphain,z):
 
 def fast_double_Lir(m,zin): #Tin,betain,alphain,z):
   '''I dont know how to do this yet'''
-  wavelength_range = np.linspace(8.,1000.,10.*992.) 
+  wavelength_range = np.linspace(8.,1000.,10.*992.)
 
   v = m.valuesdict()
   betain = np.asarray(v['beta'])
@@ -279,7 +282,7 @@ def fast_double_Lir(m,zin): #Tin,betain,alphain,z):
 
   nu_in = c * 1.e6 / wavelength_range
   ns = len(nu_in)
-  
+
   dnu = nu_in[0:ns-1] - nu_in[1:ns]
   dnu = np.append(dnu[0],dnu)
   Lir_hot = np.sum(hot_sed * dnu, axis=1)
@@ -294,7 +297,7 @@ def fast_sed_fitter(wavelengths, fluxes, covar, betain = 1.8):
 
   fit_params = Parameters()
   fit_params.add('A', value = 1e-32, vary = True)
-  fit_params.add('T_observed', value = 24.0, vary = True)
+  fit_params.add('T_observed', value = 24.0, vary = True, min = 0.1)
   fit_params.add('beta', value = betain, vary = False)
   fit_params.add('alpha', value = 2.0, vary = False)
 
@@ -328,17 +331,21 @@ def fast_double_sed_fitter(wavelengths, fluxes, covar, T_cold=15.0, T_hot=30.0):
 
   return m
 
-def find_sed_min(p, wavelengths, fluxes, covar):
+def find_sed_min(p, wavelengths, fluxes, covar = None):
 
-  graybody = fast_sed(p,wavelengths) 
-
-  return (fluxes - graybody) / covar
-  #return (fluxes - graybody) # np.invert(covar) # (fluxes - graybody) 
+  graybody = fast_sed(p,wavelengths)
+  #print p['T_observed']
+  #print fluxes - graybody
+  if covar == None:
+      return (fluxes - graybody)
+  else:
+      return (fluxes - graybody) / covar
+  #return (fluxes - graybody) # np.invert(covar) # (fluxes - graybody)
 
 def find_double_sed_min(p, wavelengths, fluxes, covar):
 
-  graybody_hot = fast_hot_sed(p,wavelengths) 
-  graybody_cold = fast_cold_sed(p,wavelengths) 
+  graybody_hot = fast_hot_sed(p,wavelengths)
+  graybody_cold = fast_cold_sed(p,wavelengths)
   graybody = graybody_hot+graybody_cold
 
   return (fluxes - graybody) / covar
@@ -357,12 +364,12 @@ def fast_hot_sed(m,wavelengths):
   base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
   expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
   K = base * 10.0**expo
-  w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+  w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain)
   w_den = (np.exp(3.0 + betain + alphain) - 1.0)
-  w_div = w_num/w_den 
+  w_div = w_num/w_den
   nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
 
-  graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
+  graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0
   powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
   graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
@@ -382,12 +389,12 @@ def fast_cold_sed(m,wavelengths):
   base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
   expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
   K = base * 10.0**expo
-  w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+  w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain)
   w_den = (np.exp(3.0 + betain + alphain) - 1.0)
-  w_div = w_num/w_den 
+  w_div = w_num/w_den
   nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
 
-  graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
+  graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0
   powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
   graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
@@ -412,20 +419,20 @@ def fast_double_sed(m,wavelengths):
   K = base * 10.0**expo
 
   #Hot
-  w_num_hot = A_hot * K * (T_hot * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+  w_num_hot = A_hot * K * (T_hot * (3.0 + betain + alphain))**(3.0 + betain + alphain)
   w_den_hot = (np.exp(3.0 + betain + alphain) - 1.0)
-  w_div_hot = w_num_hot/w_den_hot 
+  w_div_hot = w_num_hot/w_den_hot
   nu_cut_hot= (3.0 + betain + alphain) * 0.208367e11 * T_hot
-  graybody_hot = np.reshape(A_hot,(ng_hot,1)) * nu_in**np.reshape(betain,(ng_hot,1)) * black(nu_in, T_hot) / 1000.0 
+  graybody_hot = np.reshape(A_hot,(ng_hot,1)) * nu_in**np.reshape(betain,(ng_hot,1)) * black(nu_in, T_hot) / 1000.0
   powerlaw_hot = np.reshape(w_div_hot,(ng_hot,1)) * nu_in**np.reshape(-1.0 * alphain,(ng_hot,1))
   graybody_hot[np.where(nu_in >= np.reshape(nu_cut_hot,(ng_hot,1)))]=powerlaw_hot[np.where(nu_in >= np.reshape(nu_cut_hot,(ng_hot,1)))]
 
   #Cold
-  w_num_cold = A_cold * K * (T_cold * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+  w_num_cold = A_cold * K * (T_cold * (3.0 + betain + alphain))**(3.0 + betain + alphain)
   w_den_cold = (np.exp(3.0 + betain + alphain) - 1.0)
-  w_div_cold = w_num_cold/w_den_cold 
+  w_div_cold = w_num_cold/w_den_cold
   nu_cut_cold = (3.0 + betain + alphain) * 0.208367e11 * T_cold
-  graybody_cold = np.reshape(A_cold,(ng_cold,1)) * nu_in**np.reshape(betain,(ng_cold,1)) * black(nu_in, T_cold) / 1000.0 
+  graybody_cold = np.reshape(A_cold,(ng_cold,1)) * nu_in**np.reshape(betain,(ng_cold,1)) * black(nu_in, T_cold) / 1000.0
   powerlaw_cold = np.reshape(w_div_cold,(ng_cold,1)) * nu_in**np.reshape(-1.0 * alphain,(ng_cold,1))
   graybody_cold[np.where(nu_in >= np.reshape(nu_cut_cold,(ng_cold,1)))]=powerlaw_cold[np.where(nu_in >= np.reshape(nu_cut_cold,(ng_cold,1)))]
 
@@ -445,12 +452,12 @@ def fast_sed(m,wavelengths):
   base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
   expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
   K = base * 10.0**expo
-  w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+  w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain)
   w_den = (np.exp(3.0 + betain + alphain) - 1.0)
-  w_div = w_num/w_den 
+  w_div = w_num/w_den
   nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
 
-  graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
+  graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0
   powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
   graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
@@ -458,12 +465,12 @@ def fast_sed(m,wavelengths):
 
 def find_nearest(array,value):
     idx = (np.abs(array-value)).argmin()
-    
+
     return array[idx]
 
 def find_nearest_index(array,value):
     idx = (np.abs(array-value)).argmin()
-    
+
     return idx
 
 ## G
@@ -473,7 +480,7 @@ def gamma_rj(Td,z,nu_obs):
     #    nu_in = nu_obs
     #else:
     #    nu_in = nu_obs * 1e9
-        
+
     h = 6.62607004e-34 #m2 kg / s  #4.13e-15 #eV/s
     k = 1.38064852e-23 #m2 kg s-2 K-1 8.617e-5 #eV/K
     num = h * nu_obs * zin / (k*Td)
@@ -498,7 +505,7 @@ def get_stellar_mass_at_number_density(zeds,nden,sfg=2):
   nz = np.shape(zeds)[0]
   nn = np.shape(nden)[0]
   sm = np.zeros([nz,nn])
-  Mass = np.linspace(8,14,10000) 
+  Mass = np.linspace(8,14,10000)
   for iz in range(nz):
     cnd = cumulative_number_density(zeds[iz],Mass=Mass,sfg=sfg)
     for jn in range(nn):
@@ -523,18 +530,18 @@ def idl_restore(tfname):
 def KLT(a):
     """
     Returns Karhunen Loeve Transform of the input and the transformation matrix and eigenval
-    
+
     Ex:
     import numpy as np
     a  = np.array([[1,2,4],[2,3,10]])
-    
+
     kk,m = KLT(a)
     print kk
     print m
-    
+
     # to check, the following should return the original a
     print np.dot(kk.T,m).T
-        
+
     """
     val,vec = np.linalg.eig(np.cov(a))
     klt = np.dot(vec,a)
@@ -548,7 +555,7 @@ def lambda_to_ghz(lam):
   return ghz
 
 def leja_mass_function(z,Mass=np.linspace(9,13,100),sfg=2):
-  #sfg = 0  -  Quiescent 
+  #sfg = 0  -  Quiescent
   #sfg = 1  -  Star Forming
   #sfg = 2  -  All
 
@@ -647,11 +654,11 @@ def pad_and_smooth_psf(mapin, psfin):
   # shift psf so that centre is at (0,0)
   psfpad = shift_twod(psfpad, -px0, -py0)
   smmap = np.real( np.fft.ifft2( np.fft.fft2(zero_pad(mapin) ) *
-    np.fft.fft2(zero_pad(psfpad)) ) ) 
+    np.fft.fft2(zero_pad(psfpad)) ) )
 
   return smmap[0:mnx,0:mny]
 
-def planck(wav, T): 
+def planck(wav, T):
   #nuvector = c * 1.e6 / lambdavector # Hz from microns??
   h = 6.626e-34
   c = 3.0e+8
@@ -670,7 +677,7 @@ def poly(X,C):
     y = c[n]
     for i in range(n-1)[::-1]:
       y = y * x + c[i]
-    
+
     return y
 
 ## R
@@ -693,22 +700,22 @@ def schecter(X,P,exp=None,plaw=None):
   ''' X is alog10(M)
       P[0]=alpha, P[1]=M*, P[2]=phi*
       the output is in units of [Mpc^-3 dex^-1] ???
-  '''  
-  if exp != None: 
+  '''
+  if exp != None:
     return np.log(10.) * P[2] * np.exp(-10**(X - P[1]))
-  if plaw != None: 
+  if plaw != None:
     return np.log(10.) * P[2] * (10**((X - P[1])*(1+P[0])))
   return np.log(10.) * P[2] * (10.**((X-P[1])*(1.0+P[0]))) * np.exp(-10.**(X-P[1]))
 
 def shift(seq, x):
   from numpy import roll
   out = roll(seq, int(x))
-  return out 
+  return out
 
 def shift_twod(seq, x, y):
   from numpy import roll
   out = roll(roll(seq, int(x), axis = 1), int(y), axis = 0)
-  return out 
+  return out
 
 def shift_bit_length(x):
   return 1<<(x-1).bit_length()
@@ -737,7 +744,7 @@ def smooth_psf(mapin, psfin):
   psfpad = shift_twod(psfpad, -px0, -py0)
   smmap = np.real( np.fft.ifft2( np.fft.fft2(mapin) *
     np.fft.fft2(psfpad))
-    ) 
+    )
 
   return smmap
 
@@ -757,7 +764,7 @@ def string_is_true(sraw):
         logging.warning("Input not recognized for parameter: %s" % (key))
         logging.warning("You provided: %s" % (sraw))
         raise
-        
+
 def solid_angle_from_fwhm(fwhm_arcsec):
   sa = np.pi*(fwhm_arcsec / 3600.0 * np.pi / 180.0)**2.0 / (4.0 * np.log(2.0))
   return sa
@@ -767,7 +774,7 @@ def subset_averages(table,radec_ids,feature):
   aves = {}
   for k in radec_ids.keys():
     all_values  = clean_nans(table[feature][table.ID.isin(radec_ids[k])].values)
-    ave = np.mean(all_values[all_values != -99.9])
+    ave = np.median(all_values[all_values != -99.9])
     aves[k] = ave
   return aves
 
@@ -847,14 +854,14 @@ def zero_pad(cmap,l2=0):
     l2 = max([shift_bit_length(ms[0]),shift_bit_length(ms[1])])
   if ms[0] <= l2 and ms[1] <=l2:
     zmap=np.zeros([l2,l2])
-    zmap[:ms[0],:ms[1]]=cmap 
+    zmap[:ms[0],:ms[1]]=cmap
   else:
     zmap=cmap
   return zmap
 
 def viero_2013_luminosities_neural_net(z,mass,sfg=1, wpath = '/data/simstack/pickles/', wfile = 'SFR_Mz_Jason_weights_from_neural_network_300layers_N201_SFG.p' ):
   '''
-  First attempt at fitting the LMz relation with a neural network.  Not optimized yet.  Also not done for quiescent galaxies.  
+  First attempt at fitting the LMz relation with a neural network.  Not optimized yet.  Also not done for quiescent galaxies.
   '''
 
   reg_sfg = pickle.load( open( wpath + wfile, "rb" ) )

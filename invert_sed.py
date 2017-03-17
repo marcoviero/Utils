@@ -17,7 +17,7 @@ def find_nearest_index(array_in,value):
 	idx = (np.abs(array_in-np.reshape(value,(ng,1)))).argmin(axis=1)
 	return idx
 
-def sed(p, nu_in, T, betain, alphain): 
+def sed(p, nu_in, T, betain, alphain):
 	'''
 	#m = [A, T, Beta, Alpha] - return SED (array) in Jy
 	#P[0] = A
@@ -37,18 +37,18 @@ def sed(p, nu_in, T, betain, alphain):
 	base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
 	expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
 	K = base * 10.0**expo
-	w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+	w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain)
 	w_den = (np.exp(3.0 + betain + alphain) - 1.0)
-	w_div = w_num/w_den 
+	w_div = w_num/w_den
 	nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
 
-	graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
+	graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0
 	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
 	graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
 	return graybody
 
-def sed_direct(A, nu_in, T, betain, alphain): 
+def sed_direct(A, nu_in, T, betain, alphain):
 	'''
 	'''
 	ng = np.size(A)
@@ -57,20 +57,20 @@ def sed_direct(A, nu_in, T, betain, alphain):
 	base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
 	expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
 	K = base * 10.0**expo
-	w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+	w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain)
 	w_den = (np.exp(3.0 + betain + alphain) - 1.0)
-	w_div = w_num/w_den 
+	w_div = w_num/w_den
 	nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
 
-	#graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(np.repeat(betain,ng),[ng,1]) * black(nu_in, T) / 1000.0 
-	#powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(np.repeat(alphain,ng),[ng,1]) 
-	graybody = np.reshape(A,(ng,1)) * nu_in**betain * black(nu_in, T) / 1000.0 
+	#graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(np.repeat(betain,ng),[ng,1]) * black(nu_in, T) / 1000.0
+	#powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(np.repeat(alphain,ng),[ng,1])
+	graybody = np.reshape(A,(ng,1)) * nu_in**betain * black(nu_in, T) / 1000.0
 	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**(-1.0 * alphain)
 	graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
 	return graybody
 
-def sedint(p, nu_in, Lir, T, betain, alphain): 
+def sedint(p, nu_in, Lir, T, betain, alphain):
 	'''
 	#m = [A, T, Beta, Alpha] - return integrated SED flux (one number) in Jy x Hz
 	#P[0] = A
@@ -95,14 +95,14 @@ def sedint(p, nu_in, Lir, T, betain, alphain):
 	base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
 	expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
 	K = base * 10.0**expo
-	w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+	w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain)
 	w_den = (np.exp(3.0 + betain + alphain) - 1.0)
-	w_div = w_num/w_den 
+	w_div = w_num/w_den
 	nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
-	
+
 	#nu_cut_ind = find_nearest_index(nu_in,nu_cut)
 
-	graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
+	graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0
 	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
 	graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
@@ -111,7 +111,7 @@ def sedint(p, nu_in, Lir, T, betain, alphain):
 	dnu = nu_in[1:ns] - nu_in[0:ns-1]
 	dnu = np.append(dnu[0],dnu)
 
-	return np.ravel([np.sum(graybody * dnu, axis=1) - Lir]) 
+	return np.ravel([np.sum(graybody * dnu, axis=1) - Lir])
 
 def sedint2(p, nu_in, Lir, ng): # m = [A, T, Beta, Alpha] - return integrated SED flux (one number) in Jy x Hz
 	#P[0] = A
@@ -132,14 +132,14 @@ def sedint2(p, nu_in, Lir, ng): # m = [A, T, Beta, Alpha] - return integrated SE
 	base = 2.0 * (6.626)**(-2.0 - betain - alphain) * (1.38)**(3. + betain + alphain) / (2.99792458)**2.0
 	expo = 34.0 * (2.0 + betain + alphain) - 23.0 * (3.0 + betain + alphain) - 16.0 + 26.0
 	K = base * 10.0**expo
-	w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain) 
+	w_num = A * K * (T * (3.0 + betain + alphain))**(3.0 + betain + alphain)
 	w_den = (np.exp(3.0 + betain + alphain) - 1.0)
-	w_div = w_num/w_den 
+	w_div = w_num/w_den
 	nu_cut = (3.0 + betain + alphain) * 0.208367e11 * T
-	
+
 	#nu_cut_ind = find_nearest_index(nu_in,nu_cut)
 
-	graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0 
+	graybody = np.reshape(A,(ng,1)) * nu_in**np.reshape(betain,(ng,1)) * black(nu_in, T) / 1000.0
 	powerlaw = np.reshape(w_div,(ng,1)) * nu_in**np.reshape(-1.0 * alphain,(ng,1))
 	graybody[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]=powerlaw[np.where(nu_in >= np.reshape(nu_cut,(ng,1)))]
 
@@ -148,10 +148,10 @@ def sedint2(p, nu_in, Lir, ng): # m = [A, T, Beta, Alpha] - return integrated SE
 	dnu = nu_in[1:ns] - nu_in[0:ns-1]
 	dnu = np.append(dnu[0],dnu)
 
-	return np.ravel([np.sum(graybody * dnu, axis=1) - Lir]) 
+	return np.ravel([np.sum(graybody * dnu, axis=1) - Lir])
 
 def simple_flux_from_greybody(lambdavector, Trf = None, b = None, Lrf = None, zin = None, ngal = None):
-	''' 
+	'''
 	Return flux densities at any wavelength of interest (in the range 1-10000 micron),
 	assuming a galaxy (at given redshift) graybody spectral energy distribution (SED),
 	with a power law replacing the Wien part of the spectrum to account for the
@@ -166,10 +166,10 @@ def simple_flux_from_greybody(lambdavector, Trf = None, b = None, Lrf = None, zi
 	Lrf = rest-frame FIR bolometric luminosity [in L_sun; default = 10^10]
 	zin = galaxy redshift [default = 0.001]
 	lambdavector = array of wavelengths of interest [in microns; default = (24, 70, 160, 250, 350, 500)];
-	
+
 	AUTHOR:
 	Lorenzo Moncelsi [moncelsi@caltech.edu]
-	
+
 	HISTORY:
 	20June2012: created in IDL
 	November2015: converted to Python
@@ -189,7 +189,7 @@ def simple_flux_from_greybody(lambdavector, Trf = None, b = None, Lrf = None, zi
 	Lir = Lrf / conversion # Jy x Hz
 
 	Ain = np.zeros(ngal) + 1.0e-36 #good starting parameter
-	betain =  np.zeros(ngal) + b 
+	betain =  np.zeros(ngal) + b
 	alphain=  np.zeros(ngal) + 2.0
 
 	fit_params = Parameters()
@@ -209,7 +209,7 @@ def simple_flux_from_greybody(lambdavector, Trf = None, b = None, Lrf = None, zi
 	return flux_mJy
 
 def single_simple_flux_from_greybody(lambdavector, Trf = None, b = 2.0, Lrf = None, zin = None):
-	''' 
+	'''
 	Return flux densities at any wavelength of interest (in the range 1-10000 micron),
 	assuming a galaxy (at given redshift) graybody spectral energy distribution (SED),
 	with a power law replacing the Wien part of the spectrum to account for the
@@ -225,10 +225,10 @@ def single_simple_flux_from_greybody(lambdavector, Trf = None, b = 2.0, Lrf = No
 	Lrf = rest-frame FIR bolometric luminosity [in L_sun; default = 10^10]
 	zin = galaxy redshift [default = 0.001]
 	lambdavector = array of wavelengths of interest [in microns; default = (24, 70, 160, 250, 350, 500)];
-	
+
 	AUTHOR:
 	Lorenzo Moncelsi [moncelsi@caltech.edu]
-	
+
 	HISTORY:
 	20June2012: created in IDL
 	November2015: converted to Python
@@ -247,7 +247,7 @@ def single_simple_flux_from_greybody(lambdavector, Trf = None, b = 2.0, Lrf = No
 	Lir = Lrf / conversion # Jy x Hz
 
 	Ain = 1.0e-36 #good starting parameter
-	betain =  b 
+	betain =  b
 	alphain=  2.0
 
 	fit_params = Parameters()
@@ -261,7 +261,7 @@ def single_simple_flux_from_greybody(lambdavector, Trf = None, b = 2.0, Lrf = No
 	return flux_mJy
 
 def single_simple_rest_frame_flux_from_greybody(lambdavector, Trf = None, b = 2.0, Lrf = None, zin = None):
-	''' 
+	'''
 	Return flux densities at the rest-frame wavelength of interest (in the range 1-10000 micron),
 	assuming a galaxy (at given redshift) graybody spectral energy distribution (SED),
 	with a power law replacing the Wien part of the spectrum to account for the
@@ -277,10 +277,10 @@ def single_simple_rest_frame_flux_from_greybody(lambdavector, Trf = None, b = 2.
 	Lrf = rest-frame FIR bolometric luminosity [in L_sun; default = 10^10]
 	zin = galaxy redshift [default = 0.001]
 	lambdavector = array of wavelengths of interest [in microns; default = (24, 70, 160, 250, 350, 500)];
-	
+
 	AUTHOR:
 	Lorenzo Moncelsi [moncelsi@caltech.edu]
-	
+
 	HISTORY:
 	20June2012: created in IDL
 	November2015: converted to Python
@@ -299,7 +299,7 @@ def single_simple_rest_frame_flux_from_greybody(lambdavector, Trf = None, b = 2.
 	Lir = Lrf / conversion # Jy x Hz
 
 	Ain = 1.0e-36 #good starting parameter
-	betain =  b 
+	betain =  b
 	alphain=  2.0
 
 	fit_params = Parameters()
@@ -328,7 +328,7 @@ def amplitude_of_best_fit_greybody(Trf = None, b = 2.0, Lrf = None, zin = None):
 	Lir = Lrf / conversion # Jy x Hz
 
 	Ain = 1.0e-36 #good starting parameter
-	betain =  b 
+	betain =  b
 	alphain=  2.0
 
 	fit_params = Parameters()
@@ -339,7 +339,7 @@ def amplitude_of_best_fit_greybody(Trf = None, b = 2.0, Lrf = None, zin = None):
 	#pdb.set_trace()
 	return Pfin.params['Ain'].value
 
-def invert_sed_neural_net(lam, Trf, Lrf, zin, wpath = '/data/cmbsims/nn_weights/', wfile = 'SED_amplitude_weights_from_neural_network_logistic_100layers_N8000.p'):
+def invert_sed_neural_net(lam, Trf, Lrf, zin, wpath = '/data/pickles/simstack/ann_function_fits/', wfile = 'SED_amplitude_weights_from_neural_network_logistic_100layers_N8000.p'):
 
 	reg = pickle.load( open( wpath + wfile, "rb" ) )
 
@@ -351,10 +351,3 @@ def invert_sed_neural_net(lam, Trf, Lrf, zin, wpath = '/data/cmbsims/nn_weights/
 
 	fluxes = sed_direct(predicted_amplitude, np.array([nuvector]), Trf/(1.+zin), betain=2.0, alphain=2.0)
 	return fluxes
-
-
-
-
-
-
-
