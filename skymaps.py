@@ -402,15 +402,9 @@ class Field_catalogs:
 				self.id_z_ms_4pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_agn'] = self.table.ID[ind_mz_agn].values
 				self.id_z_ms_4pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_sb'] = self.table.ID[ind_mz_sb].values
 
-<<<<<<< HEAD
-	def get_3pops_mass_redshift_bins(self, znodes, mnodes, linear_mass=1):
-		#pop_suf = ['sf','qt','sb']
-		self.id_z_ms_3pop = {}
-=======
 	def get_5pops_mass_redshift_bins(self, znodes, mnodes, linear_mass=1):
 		#pop_suf = ['sf','qt','agn','sb','loc']
 		self.id_z_ms_5pop = {}
->>>>>>> 2a3d7396c0ae1a8bf0560d42b0468a487c064c50
 		for iz in range(len(znodes[:-1])):
 			for jm in range(len(mnodes[:-1])):
 				if linear_mass == 1:
@@ -441,6 +435,20 @@ class Field_catalogs:
 				self.id_z_ms_5pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_agn'] = self.table.ID[ind_mz_agn].values
 				self.id_z_ms_5pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_sb'] = self.table.ID[ind_mz_sb].values
 				self.id_z_ms_5pop['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_loc'] = self.table.ID[ind_mz_loc].values
+
+	def get_subpop_ids(self, znodes, mnodes, pop_dict, linear_mass=1):
+		self.subpop_ids = {}
+		for iz in range(len(znodes[:-1])):
+			for jm in range(len(mnodes[:-1])):
+				for k in pop_dict:
+					if linear_mass == 1:
+						ind_mz =( (self.table.sfg == pop_dict[k]) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
+							(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) )
+					else:
+						ind_mz =( (self.table.sfg == pop_dict[k]) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
+							(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) )
+
+					self.subpop_ids['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_'+k] = self.table.ID[ind_mz].values
 
 	def get_6pops_mass_redshift_bins(self, znodes, mnodes, linear_mass=1):
 		#pop_suf = ['qt',sf','agn','dst',sb','loc']
