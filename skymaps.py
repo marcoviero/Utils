@@ -101,6 +101,22 @@ class Field_catalogs:
 	#	'''
 	#	sfg = np.ones(self.nsrc)
 
+
+	def separate_pops(self, cuts_dict):
+		sfg = np.ones(self.nsrc)
+		for i in range(self.nsrc):
+			for cut in cuts_dict:
+				if (self.table[cut][i] > cuts_dict[cut][0]):
+					sfg[i] = cuts_dict[cut][1]
+					break
+				else:
+					if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
+						if (self.table.z_peak.values[i] < 1):
+							if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.69) ): sfg[i]=0
+						if (self.table.z_peak.values[i] > 1):
+							if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.59) ): sfg[i]=0
+		self.table['sfg'] = sfg
+
 	def separate_sf_qt(self):
 		sfg = np.ones(self.nsrc)
 		#pdb.set_trace()
