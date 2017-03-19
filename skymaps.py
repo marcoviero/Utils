@@ -101,20 +101,120 @@ class Field_catalogs:
 	#	'''
 	#	sfg = np.ones(self.nsrc)
 
+	def separate_pops_by_index(self, cuts_dict, uvj = True):
+		'''
+		This is a generalized classifier of galaxies.
+		cuts_dict is a dictionary with conditions,
+		where the key is the index of the population (e.g., 0,1,2)
+		E.g.;
+		cuts_dict = {1:[criteria],3:[criteria],..,5:[criteria]}
+		cuts_dict[2] = [criteria]
+		The critera contain ['key_string',greater-than,less-than] values with False
+		when only one condition.  E.g.,
+			cuts_dict[3] = ['dusty',[['lage', False, 7.5]]]
+			cuts_dict[2] = ['agn',[['F_ratio', 40, False]]]
+			cuts_dict[4] = ['sb',[['mips24',300,False],['lage', False, 7.5]]]
 
-	def separate_pops(self, cuts_dict):
+		Ncrit == len(cuts_dict) [-2 if UVJ used for sf/qt]
+		Conditions should go in descending order... hard when a dictionary
+		has no intrinsic order.  First operation is to determine the order and
+		set conditions.
+		'''
 		sfg = np.ones(self.nsrc)
+		if uvj == True:
+			Ncrit = len(cuts_dict) - 2
+		else:
+			Ncrit = len(cuts_dict)
+		#names      = [k for k in cuts_dict]
+		#ind_crit   = [cuts_dict[k][0] for k in cuts_dict]
+		#conditions = [cuts_dict[k][1] for k in cuts_dict]
+		#ind = (np.argsort(ind_crit))[::-1]
 		for i in range(self.nsrc):
-			for cut in cuts_dict:
-				if (self.table[cut][i] > cuts_dict[cut][0]):
-					sfg[i] = cuts_dict[cut][1]
-					break
+			# Go through conditions in descending order.
+			# continue when one is satisfied
+			for j in range(len(cuts_dict))[::-1][:Ncrit]:
+				name = cuts_dict[j][0]
+				conditions = cuts_dict[j][1]
+				ckey = conditions[0]
+				if conditions[1] == False:
+					if (self.table[ckey][i] < conditions[2]):
+						sfg[i] = j
+						continue
+				elif conditions[2] == False:
+					if (self.table[ckey][i] > conditions[1]):
+						sfg[i] = j
+						continue
 				else:
+					if (self.table[ckey][i] > conditions[1]) & (self.table[ckey][i] < conditions[2]):
+						sfg[i] = j
+						continue
+			# If no condition yet met then see if it's Quiescent
+			if (sfg[i] == 1) & (uvj == True):
 					if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
 						if (self.table.z_peak.values[i] < 1):
 							if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.69) ): sfg[i]=0
 						if (self.table.z_peak.values[i] > 1):
 							if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.59) ): sfg[i]=0
+
+		self.table['sfg'] = sfg
+
+	def separate_pops_by_name(self, cuts_dict):
+		'''
+		This is a generalized classifier of galaxies.
+		cuts_dict is a dictionary with conditions,
+		where the key is the population (e.g., 'sf', 'agn','sf0')
+		E.g.;
+		cuts_dict['agn'] = [pop_index,[criteria]]
+		The critera contain ['key',greater-than,less-than] values with False
+		when only one condition.  E.g.,
+			cuts_dict['dusty'] = [3,[['lage', False, 7.5]]]
+			cuts_dict['agn'] = [2,[['F_ratio', 40, False]]]
+			cuts_dict['sb'] = [4,[['mips24',300,False],['lage', False, 7.5]]]
+
+		Ncrit == len(cuts_dict) [-2 if UVJ used for sf/qt]
+		Conditions should go in descending order... hard when a dictionary
+		has no intrinsic order.  First operation is to determine the order and
+		set conditions.
+		'''
+		sfg = np.ones(self.nsrc)
+		if 'qt' in cuts_dict:
+			Ncrit = len(cuts_dict) - 2
+			uvj = True
+		else:
+			Ncrit = len(cuts_dict)
+			uvj = False
+
+		#Set (descending) order of cuts.
+		#names      = [k for k in cuts_dict]
+		ind_crit   = [cuts_dict[k][0] for k in cuts_dict]
+		conditions = [cuts_dict[k][1] for k in cuts_dict]
+		ind = (np.argsort(ind_crit))[::-1]
+		for i in range(self.nsrc):
+			# Go through conditions in descending order.
+			# continue when one is satisfied
+			for j in range(Ncrit):
+				icut = ind[j]
+				ckey = conditions[icut][0]
+				if conditions[icut][1] == False:
+					if (self.table[ckey][i] < conditions[icut][2]):
+						sfg[i]=ind_crit[icut]
+						continue
+				elif conditions[icut][2] == False:
+					if (self.table[ckey][i] > conditions[icut][1]):
+						sfg[i]=ind_crit[icut]
+						continue
+				else:
+					if (self.table[ckey][i] > conditions[icut][1]) & (self.table[ckey][i] < conditions[icut][2]):
+						sfg[i]=ind_crit[icut]
+						continue
+			# If no condition yet met then see if it's Quiescent
+			if (sfg[i] == 1) & (uvj == True):
+					if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
+						if (self.table.z_peak.values[i] < 1):
+							if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.69) ): sfg[i]=0
+						if (self.table.z_peak.values[i] > 1):
+							if (self.table.rf_U_V.values[i] > (self.table.rf_V_J.values[i]*0.88+0.59) ): sfg[i]=0
+
 		self.table['sfg'] = sfg
 
 	def separate_sf_qt(self):
