@@ -109,12 +109,14 @@ class Field_catalogs:
 		E.g.;
 		cuts_dict = {1:[criteria],3:[criteria],..,5:[criteria]}
 		cuts_dict[2] = [criteria]
+		E.g.;
+		cuts_dict = {0:[],1:[],2:['agn',['F_ratio',50,False]],3:['sb',['lage',False,7.5]]}
+
 		The critera contain ['key_string',greater-than,less-than] values with False
 		when only one condition.  E.g.,
 			cuts_dict[3] = ['dusty',[['lage', False, 7.5]]]
 			cuts_dict[2] = ['agn',[['F_ratio', 40, False]]]
 			cuts_dict[4] = ['sb',[['mips24',300,False],['lage', False, 7.5]]]
-
 		Ncrit == len(cuts_dict) [-2 if UVJ used for sf/qt]
 		Conditions should go in descending order... hard when a dictionary
 		has no intrinsic order.  First operation is to determine the order and
@@ -136,7 +138,11 @@ class Field_catalogs:
 				name = cuts_dict[j][0]
 				conditions = cuts_dict[j][1]
 				ckey = conditions[0]
-				if conditions[1] == False:
+				if (conditions[1] == False) & (conditions[2] == False):
+					if (self.table[ckey][i] == conditions[3]):
+						sfg[i]= j
+						continue
+				elif conditions[1] == False:
 					if (self.table[ckey][i] < conditions[2]):
 						sfg[i] = j
 						continue
@@ -195,7 +201,11 @@ class Field_catalogs:
 			for j in range(Ncrit):
 				icut = ind[j]
 				ckey = conditions[icut][0]
-				if conditions[icut][1] == False:
+				if (conditions[icut][1] == False) & (conditions[icut][2] == False):
+					if (self.table[ckey][i] == conditions[icut][3]):
+						sfg[i]=ind_crit[icut]
+						continue
+				elif conditions[icut][1] == False:
 					if (self.table[ckey][i] < conditions[icut][2]):
 						sfg[i]=ind_crit[icut]
 						continue
@@ -392,10 +402,10 @@ class Field_catalogs:
 			for jm in range(len(mnodes[:-1])):
 				for k in pop_dict:
 					if linear_mass == 1:
-						ind_mz =( (self.table.sfg == pop_dict[k]) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
+						ind_mz =( (self.table.sfg == pop_dict[k][0]) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
 							(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) )
 					else:
-						ind_mz =( (self.table.sfg == pop_dict[k]) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
+						ind_mz =( (self.table.sfg == pop_dict[k][0]) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
 							(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) )
 
 					self.subpop_ids['z_'+clean_args(str(round(znodes[iz],3)))+'_'+clean_args(str(round(znodes[iz+1],3)))+'__m_'+clean_args(str(round(mnodes[jm],3)))+'_'+clean_args(str(round(mnodes[jm+1],3)))+'_'+k] = self.table.ID[ind_mz].values
