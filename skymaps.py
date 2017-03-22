@@ -193,9 +193,9 @@ class Field_catalogs:
 			uvj = False
 		print Ncrit
 		#Set (descending) order of cuts.
-		#names      = [k for k in cuts_dict]
+		#names      = [k for k in cuts_dict][::-1]
 		ind        = [cuts_dict[k][0] for k in cuts_dict][::-1]
-		conditions = [cuts_dict[k][1] for k in cuts_dict]
+		conditions = [cuts_dict[k][1] for k in cuts_dict][::-1]
 		for i in range(self.nsrc):
 			# Go through conditions in descending order.
 			# continue when one is satisfied
