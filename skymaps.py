@@ -123,10 +123,11 @@ class Field_catalogs:
 		set conditions.
 		'''
 		sfg = np.ones(self.nsrc)
+		npop = len(cuts_dict)
 		if uvj == True:
-			Ncrit = len(cuts_dict) - 2
+			Ncrit = npop - 2
 		else:
-			Ncrit = len(cuts_dict)
+			Ncrit = npop
 		#names      = [k for k in cuts_dict]
 		#ind_crit   = [cuts_dict[k][0] for k in cuts_dict]
 		#conditions = [cuts_dict[k][1] for k in cuts_dict]
@@ -134,8 +135,8 @@ class Field_catalogs:
 		for i in range(self.nsrc):
 			# Go through conditions in descending order.
 			# continue when one is satisfied
-			for j in range(len(cuts_dict))[::-1][:Ncrit]:
-				name = cuts_dict[j][0]
+			for j in range(npop)[::-1][:Ncrit]:
+				#name = cuts_dict[j][0]
 				conditions = cuts_dict[j][1]
 				ckey = conditions[0]
 				if (conditions[1] == False) & (conditions[2] == False):
@@ -183,39 +184,39 @@ class Field_catalogs:
 		set conditions.
 		'''
 		sfg = np.ones(self.nsrc)
+		npop = len(cuts_dict)
 		if 'qt' in cuts_dict:
-			Ncrit = len(cuts_dict) - 2
+			Ncrit = npop - 2
 			uvj = True
 		else:
-			Ncrit = len(cuts_dict)
+			Ncrit = npop
 			uvj = False
-
+		print Ncrit
 		#Set (descending) order of cuts.
 		#names      = [k for k in cuts_dict]
-		ind_crit   = [cuts_dict[k][0] for k in cuts_dict]
+		ind        = [cuts_dict[k][0] for k in cuts_dict][::-1]
 		conditions = [cuts_dict[k][1] for k in cuts_dict]
-		ind = (np.argsort(ind_crit))[::-1]
 		for i in range(self.nsrc):
 			# Go through conditions in descending order.
 			# continue when one is satisfied
-			for j in range(Ncrit):
+			for j in range(npop)[::-1][:Ncrit]:
 				icut = ind[j]
 				ckey = conditions[icut][0]
 				if (conditions[icut][1] == False) & (conditions[icut][2] == False):
 					if (self.table[ckey][i] == conditions[icut][3]):
-						sfg[i]=ind_crit[icut]
+						sfg[i]=ind[icut]
 						continue
 				elif conditions[icut][1] == False:
 					if (self.table[ckey][i] < conditions[icut][2]):
-						sfg[i]=ind_crit[icut]
+						sfg[i]=ind[icut]
 						continue
 				elif conditions[icut][2] == False:
 					if (self.table[ckey][i] > conditions[icut][1]):
-						sfg[i]=ind_crit[icut]
+						sfg[i]=ind[icut]
 						continue
 				else:
 					if (self.table[ckey][i] > conditions[icut][1]) & (self.table[ckey][i] < conditions[icut][2]):
-						sfg[i]=ind_crit[icut]
+						sfg[i]=ind[icut]
 						continue
 			# If no condition yet met then see if it's Quiescent
 			if (sfg[i] == 1) & (uvj == True):
