@@ -190,32 +190,30 @@ class Field_catalogs:
 		print Ncrit
 		#Set (descending) order of cuts.
 		#names      = [k for k in cuts_dict][::-1]
-		ind        = np.argsort([cuts_dict[k][0] for k in cuts_dict])[::-1]
-		conditions = [cuts_dict[k][1] for k in cuts_dict]#[::-1]
+		#reverse_ind here is the arguments indices in reversed order
+		reverse_ind = np.argsort([cuts_dict[k][0] for k in cuts_dict])[::-1]
+		conditions  = [cuts_dict[k][1] for k in cuts_dict]
 		for i in range(self.nsrc):
 			# Go through conditions in descending order.
 			# continue when one is satisfied
-			# Bug introduced when reversing indices twice!
-			#for j in range(npop)[::-1][:Ncrit]:
-			#for j in range(npop)[:Ncrit]:
 			for j in range(Ncrit):
-				icut = ind[j]
+				icut = reverse_ind[j]
 				ckey = conditions[icut][0]
 				if (conditions[icut][1] == False) & (conditions[icut][2] == False):
 					if (self.table[ckey][i] == conditions[icut][3]):
-						sfg[i]=ind[icut]
+						sfg[i]=reverse_ind[icut]
 						continue
 				elif conditions[icut][1] == False:
 					if (self.table[ckey][i] < conditions[icut][2]):
-						sfg[i]=ind[icut]
+						sfg[i]=reverse_ind[icut]
 						continue
 				elif conditions[icut][2] == False:
 					if (self.table[ckey][i] > conditions[icut][1]):
-						sfg[i]=ind[icut]
+						sfg[i]=reverse_ind[icut]
 						continue
 				else:
 					if (self.table[ckey][i] > conditions[icut][1]) & (self.table[ckey][i] < conditions[icut][2]):
-						sfg[i]=ind[icut]
+						sfg[i]=reverse_ind[icut]
 						continue
 			# If no condition yet met then see if it's Quiescent
 			if (sfg[i] == 1) & (uvj == True):
