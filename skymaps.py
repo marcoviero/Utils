@@ -9,7 +9,7 @@ from utils import clean_nans
 from utils import clean_args
 from astropy import cosmology
 from astropy.cosmology import Planck15 as cosmo
-from astropy.cosmology import z_at_value
+from astropy.cosmology import Planck15, z_at_value
 
 class Skymaps:
 
@@ -128,10 +128,6 @@ class Field_catalogs:
 			Ncrit = npop - 2
 		else:
 			Ncrit = npop
-		#names      = [k for k in cuts_dict]
-		#ind_crit   = [cuts_dict[k][0] for k in cuts_dict]
-		#conditions = [cuts_dict[k][1] for k in cuts_dict]
-		#ind = (np.argsort(ind_crit))[::-1]
 		for i in range(self.nsrc):
 			# Go through conditions in descending order.
 			# continue when one is satisfied
@@ -194,12 +190,15 @@ class Field_catalogs:
 		print Ncrit
 		#Set (descending) order of cuts.
 		#names      = [k for k in cuts_dict][::-1]
-		ind        = [cuts_dict[k][0] for k in cuts_dict][::-1]
-		conditions = [cuts_dict[k][1] for k in cuts_dict][::-1]
+		ind        = np.argsort([cuts_dict[k][0] for k in cuts_dict])[::-1]
+		conditions = [cuts_dict[k][1] for k in cuts_dict]#[::-1]
 		for i in range(self.nsrc):
 			# Go through conditions in descending order.
 			# continue when one is satisfied
-			for j in range(npop)[::-1][:Ncrit]:
+			# Bug introduced when reversing indices twice!
+			#for j in range(npop)[::-1][:Ncrit]:
+			#for j in range(npop)[:Ncrit]:
+			for j in range(Ncrit):
 				icut = ind[j]
 				ckey = conditions[icut][0]
 				if (conditions[icut][1] == False) & (conditions[icut][2] == False):
