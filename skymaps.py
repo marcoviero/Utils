@@ -76,7 +76,6 @@ class Skymaps:
 		self.psf = clean_nans(kern)
 
 	def beam_area_correction(self,beam_area):
-		pdb.set_trace()
 		self.map *= beam_area * 1e6
 		self.noise *= beam_area * 1e6
 
