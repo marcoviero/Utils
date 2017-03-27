@@ -13,7 +13,7 @@ from astropy.cosmology import Planck15, z_at_value
 
 class Skymaps:
 
-	def __init__(self,file_map,file_noise,psf,color_correction=1.0):
+	def __init__(self,file_map,file_noise,psf,color_correction=1.0,beam_area=1.0):
 		''' This Class creates Objects for a set of
 		maps/noisemaps/beams/TransferFunctions/etc.,
 		at each Wavelength.
@@ -69,12 +69,16 @@ class Skymaps:
 
 		self.map = clean_nans(cmap) * color_correction
 		self.noise = clean_nans(cnoise,replacement_char=1e10) * color_correction
+		if beam_area != 1.0:
+			self.beam_area_correction(beam_area)
 		self.header = hd
 		self.pixel_size = pix
 		self.psf = clean_nans(kern)
 
 	def beam_area_correction(self,beam_area):
+		pdb.set_trace()
 		self.map *= beam_area * 1e6
+		self.noise *= beam_area * 1e6
 
 	def add_wavelength(self,wavelength):
 		self.wavelength = wavelength
