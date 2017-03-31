@@ -293,8 +293,37 @@ def fast_double_Lir(m,zin): #Tin,betain,alphain,z):
   Lrf_cold = Lir_cold * conversion # Jy x Hz
   return [Lrf_hot, Lrf_cold]
 
-def fast_sed_fitter(wavelengths, fluxes, covar, betain = 1.8):
+def fast_power_law_fitter(redshifts, lir, additional_features = {}, covar=None):
+    fit_params = Parameters()
+    fit_params.add('M0',value= 10.9, vary = True)
+    fit_params.add('gamma_z',value= 1.8, vary = True) #, min = 1.1, max=2.5)
+    kws = {}
+    if covar != None: kws['covar']=covar
+    kws['lir'] = lir
+    j=1
+    for i in additional_features:
+        if i == 'stellar_mass':
+            fit_params.add('gamma_stellar_mass', value= 0.1, vary = True)
+            kws['stellar_mass'] = additional_features[i].values()
+        else:
+            fit_params.add('gamma_'+i, value= 0.1, vary = True)
+            kws['feature'+str(j)] = additional_features[i]
+            j+=1
+    #pdb.set_trace()
+    #for i in additional_features:
+    #    fit_params.add('gamma_'+i, value= 0.1, vary = True)
+    #    kws[i] = additional_features[i]
 
+    LMZpl_params = minimize(find_power_law_fit,fit_params,
+        args = (np.ndarray.flatten(redshifts),),
+        kws  = kws)
+
+    m = LMZpl_params
+
+    return m
+
+
+def fast_sed_fitter(wavelengths, fluxes, covar, betain = 1.8):
   fit_params = Parameters()
   fit_params.add('A', value = 1e-32, vary = True)
   fit_params.add('T_observed', value = 24.0, vary = True, min = 0.1)
@@ -330,6 +359,31 @@ def fast_double_sed_fitter(wavelengths, fluxes, covar, T_cold=15.0, T_hot=30.0):
   m = sed_params.params
 
   return m
+
+def find_power_law_fit(p, redshifts, lir, stellar_mass, feature1=None, feature2=None, feature3=None, covar = None):
+
+    v = p.valuesdict()
+    A= np.asarray(v['M0'])
+    gamma_z = np.asarray(v['gamma_z'])
+
+    powerlaw = A + gamma_z * np.log10(redshifts) +  np.asarray(v['gamma_stellar_mass']) * np.log10(stellar_mass[0])
+
+    if feature2 != None:
+        powerlaw += np.asarray(v['gamma_'+feature2.keys()[0]]) * np.log10(feature2.values()[0])
+    if feature1 != None:
+        powerlaw += np.asarray(v['gamma_'+feature1.keys()[0]]) * np.log10(feature1.values()[0])
+    #np.asarray(v['gamma_stellar_mass']) * np.log10(feature0) +        np.asarray(v['gamma_a_hat']) * np.log10(feature1)
+
+    #powerlaw = A + gamma_z * np.log10(redshifts) +        np.asarray(v['gamma_stellar_mass']) * np.log10(stellar_mass) +        np.asarray(v['gamma_a_hat']) * np.log10(a_hat)
+    #powerlaw = A + gamma_z * np.log10(redshifts) + np.sum(np.array([np.asarray(v['gamma_'+arg]) * np.log10(kws[arg]) for arg in kws]),axis=1)
+    #additional= np.array([np.asarray(v[arg]) * kws[arg] for arg in kws ])
+
+    ind = np.where(clean_nans(powerlaw) > 0)
+
+    if covar == None:
+        return (np.log10(lir[ind])- powerlaw[ind])
+    else:
+        return (np.log10(lir[ind]) - powerlaw[ind]) / covar[ind]
 
 def find_sed_min(p, wavelengths, fluxes, covar = None):
 
