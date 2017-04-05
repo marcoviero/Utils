@@ -802,6 +802,16 @@ def smooth_psf(mapin, psfin):
 
   return smmap
 
+def stagger_x(xbins, ybin_num, wid = 0.02, log = False):
+    xout = []
+    for x in xbins:
+        if log == True:
+            xout.append( np.roll(x + 10**( np.log10(np.arange(ybin_num)*x*wid)), ybin_num/2) )
+        #print xout
+        else:
+            xout.append( np.roll(x + np.arange(ybin_num)*x*wid, ybin_num/2) )
+    return xout
+
 def string_is_true(sraw):
     """Is string true? Returns boolean value.
     """
