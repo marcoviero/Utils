@@ -320,11 +320,12 @@ class Field_catalogs:
 		z0 = 9.3
 		slope = (12.0 - 9.3 ) / (1.25)
 		for i in range(self.nsrc):
-			if (self.table.mips24[i] >= (MIPS24_cut+100.)) & (self.table.F_ratio[i] < Fcut):
+			#pdb.set_trace()
+			if (self.table.mips24.values[i] >= (MIPS24_cut+100.)) & (self.table.F_ratio.values[i] < Fcut):
 				sfg[i]=4
-			elif (self.table.LMASS[i] > self.table.z_peak[i] * slope + z0) & (self.table.mips24[i] > MIPS24_cut):
+			elif (self.table.LMASS.values[i] > self.table.z_peak.values[i] * slope + z0) & (self.table.mips24.values[i] > MIPS24_cut):
 				sfg[i]=3
-			elif (self.table.F_ratio[i] >= Fcut):
+			elif (self.table.F_ratio.values[i] >= Fcut):
 				sfg[i]=2
 			else:
 				if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
@@ -339,11 +340,11 @@ class Field_catalogs:
 		z0 = 9.3
 		slope = (12.0 - 9.3 ) / (1.25)
 		for i in range(self.nsrc):
-			if (10**(self.table.lssfr.values[i])*1e9 >= ssfr ) & (self.table.F_ratio[i] < Fcut):
+			if (10**(self.table.lssfr.values[i])*1e9 >= ssfr ) & (self.table.F_ratio.values[i] < Fcut):
 				sfg[i]=4
-			elif (self.table.LMASS[i] > self.table.z_peak[i] * slope + z0) & (self.table.mips24[i] > 250):
+			elif (self.table.LMASS.values[i] > self.table.z_peak.values[i] * slope + z0) & (self.table.mips24.values[i] > 250):
 				sfg[i]=3
-			elif (self.table.F_ratio[i] >= Fcut):
+			elif (self.table.F_ratio.values[i] >= Fcut):
 				sfg[i]=2
 			else:
 				if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
@@ -356,9 +357,9 @@ class Field_catalogs:
 	def separate_4pops(self, Fcut = 40, age_cut = 7.5):
 		sfg = np.ones(self.nsrc)
 		for i in range(self.nsrc):
-			if (self.table.lage[i] <= age_cut):
+			if (self.table.lage.values[i] <= age_cut):
 				sfg[i]=3
-			elif (self.table.F_ratio[i] >= Fcut):
+			elif (self.table.F_ratio.values[i] >= Fcut):
 				sfg[i]=2
 			else:
 				if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
@@ -371,7 +372,7 @@ class Field_catalogs:
 	def separate_3pops(self,  Fcut = 40):
 		sfg = np.ones(self.nsrc)
 		for i in range(self.nsrc):
-			if (self.table.F_ratio[i] >= Fcut):
+			if (self.table.F_ratio.values[i] >= Fcut):
 				sfg[i]=2
 			else:
 				if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
@@ -384,7 +385,7 @@ class Field_catalogs:
 	def separate_3pops_sb(self,  age_cut = 7.4):
 		sfg = np.ones(self.nsrc)
 		for i in range(self.nsrc):
-			if (self.table.lage[i] <= age_cut):
+			if (self.table.lage.values[i] <= age_cut):
 				sfg[i]=2
 			else:
 				if (self.table.rf_U_V.values[i] > 1.3) and (self.table.rf_V_J.values[i] < 1.5):
@@ -404,8 +405,8 @@ class Field_catalogs:
 			for jm in range(len(mnodes[:-1])):
 				for k in pop_dict:
 					if linear_mass == 1:
-						ind_mz =( (self.table.sfg == pop_dict[k][0]) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
-							(10**self.table.LMASS >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS < 10**np.max(mnodes[jm:jm+2])) )
+						ind_mz =( (self.table.sfg.values == pop_dict[k][0]) & (self.table.z_peak.values >= np.min(znodes[iz:iz+2])) & (self.table.z_peak.values < np.max(znodes[iz:iz+2])) &
+							(10**self.table.LMASS.values >= 10**np.min(mnodes[jm:jm+2])) & (10**self.table.LMASS.values < 10**np.max(mnodes[jm:jm+2])) )
 					else:
 						ind_mz =( (self.table.sfg == pop_dict[k][0]) & (self.table.z_peak >= np.min(znodes[iz:iz+2])) & (self.table.z_peak < np.max(znodes[iz:iz+2])) &
 							(self.table.LMASS >= np.min(mnodes[jm:jm+2])) & (self.table.LMASS < np.max(mnodes[jm:jm+2])) )
