@@ -459,7 +459,7 @@ def find_power_law_fit(p, redshifts, lir, stellar_mass, feature1=None, feature2=
 
     powerlaw = A + gamma_z * np.log10(redshifts) +  np.asarray(v['gamma_stellar_mass']) * np.log10(stellar_mass[0])
     #powerlaw = A + gamma_z * np.log10(redshifts) +  np.asarray(v['gamma_stellar_mass']) * np.log10(stellar_mass)
-    pdb.set_trace()
+    #pdb.set_trace()
 
     if feature2 != None:
         powerlaw += np.asarray(v['gamma_'+feature2.keys()[0]]) * np.log10(feature2.values()[0])
