@@ -293,6 +293,55 @@ def fast_double_Lir(m,zin): #Tin,betain,alphain,z):
   Lrf_cold = Lir_cold * conversion # Jy x Hz
   return [Lrf_hot, Lrf_cold]
 
+def fast_variable_power_law_polynomial_fitter(redshifts, lir, additional_features = {}, covar=None):
+    fit_params = Parameters()
+    fit_params.add('gamma_z',value= 1.8, vary = True, min = 1.1, max=2.5)
+    kws = {}
+    if covar != None: kws['covar']=covar
+    kws['lir'] = lir
+    j=1
+    for i in additional_features:
+        if i == 'stellar_mass':
+            fit_params.add('c_stellar_mass', value= 0.1, vary = True,min=1e-5)
+            kws['stellar_mass'] = additional_features[i].values()
+        else:
+            fit_params.add('c_'+i, value= 0.1, vary = True,min=1e-5)
+            kws['feature'+str(j)] = additional_features[i]
+            j+=1
+
+    LMZpl_params = minimize(find_variable_power_law_polynomial_fit,fit_params,
+        args = (np.ndarray.flatten(redshifts),),
+        kws  = kws)
+
+    m = LMZpl_params
+
+    return m
+
+def fast_power_law_polynomial_fitter(redshifts, lir, additional_features = {}, covar=None):
+    fit_params = Parameters()
+    fit_params.add('c0',value= 10.9, vary = True)
+    fit_params.add('gamma_z',value= 1.8, vary = True, min = 1.1, max=2.5)
+    kws = {}
+    if covar != None: kws['covar']=covar
+    kws['lir'] = lir
+    j=1
+    for i in additional_features:
+        if i == 'stellar_mass':
+            fit_params.add('c_stellar_mass', value= 0.1, vary = True,min=1e-5)
+            kws['stellar_mass'] = additional_features[i].values()
+        else:
+            fit_params.add('c_'+i, value= 0.1, vary = True,min=1e-5)
+            kws['feature'+str(j)] = additional_features[i]
+            j+=1
+
+    LMZpl_params = minimize(find_power_law_polynomial_fit,fit_params,
+        args = (np.ndarray.flatten(redshifts),),
+        kws  = kws)
+
+    m = LMZpl_params
+
+    return m
+
 def fast_power_law_fitter(redshifts, lir, additional_features = {}, covar=None):
     fit_params = Parameters()
     fit_params.add('M0',value= 10.9, vary = True)
@@ -309,10 +358,6 @@ def fast_power_law_fitter(redshifts, lir, additional_features = {}, covar=None):
             fit_params.add('gamma_'+i, value= 0.1, vary = True)
             kws['feature'+str(j)] = additional_features[i]
             j+=1
-    #pdb.set_trace()
-    #for i in additional_features:
-    #    fit_params.add('gamma_'+i, value= 0.1, vary = True)
-    #    kws[i] = additional_features[i]
 
     LMZpl_params = minimize(find_power_law_fit,fit_params,
         args = (np.ndarray.flatten(redshifts),),
@@ -359,6 +404,52 @@ def fast_double_sed_fitter(wavelengths, fluxes, covar, T_cold=15.0, T_hot=30.0):
   m = sed_params.params
 
   return m
+
+
+def find_variable_power_law_polynomial_fit(p, redshifts, lir, stellar_mass, feature1=None, feature2=None, feature3=None, covar = None):
+
+    v = p.valuesdict()
+    A= 0.0 #np.asarray(v['c0'])
+    gamma_z = np.asarray(v['gamma_z'])
+
+    powerlaw = A + gamma_z * np.log10(redshifts) +  np.log10(v['c_stellar_mass']*stellar_mass[0])
+
+    if feature2 != None:
+        powerlaw += np.log10(v['c_'+feature2.keys()[0]] * feature2.values()[0])
+    if feature1 != None:
+        powerlaw += np.log10(v['c_'+feature1.keys()[0]] * feature1.values()[0])
+
+    ind = np.where(clean_nans(powerlaw) > 0)
+
+    #pdb.set_trace()
+    #print (np.log10(lir[ind]) - powerlaw[ind])
+    if covar == None:
+        return (np.log10(lir[ind])- powerlaw[ind])
+    else:
+        return (np.log10(lir[ind]) - powerlaw[ind]) / np.log10(covar[ind])
+    #return (np.log10(lir[ind])- powerlaw[ind])
+
+def find_power_law_polynomial_fit(p, redshifts, lir, stellar_mass, feature1=None, feature2=None, feature3=None, covar = None):
+
+    v = p.valuesdict()
+    gamma_z = np.asarray(v['gamma_z'])
+
+    powerlaw = gamma_z * np.log10(redshifts) +  np.log10(v['c_stellar_mass']*stellar_mass[0])
+
+    if feature2 != None:
+        powerlaw += np.log10(v['c_'+feature2.keys()[0]] * feature2.values()[0])
+    if feature1 != None:
+        powerlaw += np.log10(v['c_'+feature1.keys()[0]] * feature1.values()[0])
+
+    ind = np.where(clean_nans(powerlaw) > 0)
+
+    #pdb.set_trace()
+    #print (np.log10(lir[ind]) - powerlaw[ind])
+    if covar == None:
+        return (np.log10(lir[ind])- powerlaw[ind])
+    else:
+        return (np.log10(lir[ind]) - powerlaw[ind]) / np.log10(covar[ind])
+    #return (np.log10(lir[ind])- powerlaw[ind])
 
 def find_power_law_fit(p, redshifts, lir, stellar_mass, feature1=None, feature2=None, feature3=None, covar = None):
 
