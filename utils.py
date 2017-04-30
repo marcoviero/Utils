@@ -237,7 +237,6 @@ def dist_idl(n1,m1=None):
 ## F
 def fast_Lir(m,zin): #Tin,betain,alphain,z):
   '''I dont know how to do this yet'''
-  #wavelength_range = np.logspace(np.log10(8.),np.log10(1000.),10000.)
   wavelength_range = np.linspace(8.,1000.,10.*992.)
   model_sed = fast_sed(m,wavelength_range)
 
@@ -382,6 +381,7 @@ def fast_sed_fitter(wavelengths, fluxes, covar, betain = 1.8):
     kws={'fluxes':fluxes,'covar':covar})
 
   m = sed_params.params
+  #m = sed_params
 
   return m
 
@@ -402,6 +402,7 @@ def fast_double_sed_fitter(wavelengths, fluxes, covar, T_cold=15.0, T_hot=30.0):
     kws={'fluxes':fluxes,'covar':covar})
 
   m = sed_params.params
+  #m = sed_params
 
   return m
 
