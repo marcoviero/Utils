@@ -927,11 +927,14 @@ def solid_angle_from_fwhm(fwhm_arcsec):
   sa = np.pi*(fwhm_arcsec / 3600.0 * np.pi / 180.0)**2.0 / (4.0 * np.log(2.0))
   return sa
 
-def subset_averages_from_ids(table,ids,feature):
+def subset_averages_from_ids(table,ids,feature,use_median=False):
   ''' Estimate the average value in the bin of the feature in question'''
   aves = {}
   all_values  = clean_nans(table[feature][table.ID.isin(ids)].values)
-  ave = np.median(all_values[all_values != -99.9])
+  if use_median:
+      ave = np.median(all_values[all_values != -99.9])
+  else:
+      ave = np.mean(all_values[all_values != -99.9])
   return ave
 
 def subset_averages(table,radec_ids,feature):
