@@ -153,6 +153,23 @@ def circle_mask(pixmap,radius_in,pixres):
 def clean_args(dirty_args):
   return dirty_args.replace('.','p').replace('-','_')
 
+def clean_arrays(x_array, y_array, z_array=None):
+    xout = []
+    yout = []
+    if z_array != None:
+        zout = []
+    for i in range(len(y_array)):
+        #print y_array[i]
+        if y_array[i] != 0:
+            yout.append(y_array[i])
+            xout.append(x_array[i])
+            if z_array != None:
+                zout.append(z_array[i])
+    if z_array != None:
+        return np.array(xout),np.array(yout),np.array(zout)
+    else:
+        return np.array(xout),np.array(yout)
+
 def clean_nans(dirty_array, replacement_char=0.0):
   clean_array = dirty_array
   clean_array[np.isnan(dirty_array)] = replacement_char
@@ -478,6 +495,12 @@ def find_power_law_fit(p, redshifts, lir, stellar_mass, feature1=None, feature2=
         return (np.log10(lir[ind])- powerlaw[ind])
     else:
         return (np.log10(lir[ind]) - powerlaw[ind]) / covar[ind]
+
+def find_s(uv,vj):
+    uvj = np.sqrt(uv**2 + vj**2)
+    th = np.arctan(uv/vj) * 180 / np.pi
+    th_prime = (th - 45) * np.pi / 180
+    return uvj * np.tan(th_prime)
 
 def find_sed_min(p, wavelengths, fluxes, covar = None):
 
