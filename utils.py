@@ -159,12 +159,15 @@ def clean_arrays(x_array, y_array, z_array=None):
     if z_array != None:
         zout = []
     for i in range(len(y_array)):
-        #print y_array[i]
         if y_array[i] != 0:
-            yout.append(y_array[i])
-            xout.append(x_array[i])
-            if z_array != None:
-                zout.append(z_array[i])
+            if np.sum(np.isnan(x_array[i])) > 0:
+                #print 'nan!'
+                pass
+            else:
+                yout.append(y_array[i])
+                xout.append(x_array[i])
+                if z_array != None:
+                    zout.append(z_array[i])
     if z_array != None:
         return np.array(xout),np.array(yout),np.array(zout)
     else:
@@ -496,7 +499,7 @@ def find_power_law_fit(p, redshifts, lir, stellar_mass, feature1=None, feature2=
     else:
         return (np.log10(lir[ind]) - powerlaw[ind]) / covar[ind]
 
-def find_s(uv,vj):
+def find_perp(uv,vj):
     uvj = np.sqrt(uv**2 + vj**2)
     th = np.arctan(uv/vj) * 180 / np.pi
     th_prime = (th - 45) * np.pi / 180
@@ -774,6 +777,21 @@ def L_fit(p, zed, L, Lerr):
 
 ## M
 
+def main_sequence_s15(mass,redshift):
+    r = np.log10(1.+redshift)
+    m = np.log10(mass * 1e-9)
+    m0 = 0.5
+    a0 = 1.5
+    a1 = 0.3
+    m1 = 0.36
+    a2 = 2.5
+    t0 = m - m1 - a2*r
+    if t0 < 0:
+        t0 = 0
+    log_sfr = m - m0 + a0*r - a1*(t0)**2
+
+    return log_sfr
+
 def moster_shm(z, Mh): # = 0, nm  =100.0, mmin = 10.0, mmax = 15.0):
 
   #if Mh == 0:
@@ -1050,7 +1068,27 @@ def zero_pad(cmap,l2=0):
     zmap=cmap
   return zmap
 
-def viero_2013_luminosities_neural_net(z,mass,sfg=1, wpath = '/data/simstack/pickles/', wfile = 'SFR_Mz_Jason_weights_from_neural_network_300layers_N201_SFG.p' ):
+def completeness_flag_neural_net(z,mass,sfg=1,completeness_cut=0.8, incomplete=False, wpath='/data/pickles/simstack/', wfile='completeness_flag_neural_network_4x40layers_relu_sf.p'):
+
+    rearrange_x = np.transpose(np.array([z,mass]))
+    if sfg ==1:
+        reg_sfg = pickle.load( open( wpath + wfile, "rb" ) )
+        if incomplete == True:
+            cc_flags = reg_sfg.predict(rearrange_x) < completeness_cut
+        else:
+            cc_flags = reg_sfg.predict(rearrange_x) >= completeness_cut
+    else:
+        if (wfile == 'completeness_flag_neural_network_4x40layers_relu_sf.p'):
+            wfile = 'completeness_flag_neural_network_4x40layers_relu_qt.p'
+        reg_qt = pickle.load( open( wpath + wfile, "rb" ) )
+        if incomplete == True:
+            cc_flags = reg_qt.predict(rearrange_x) < completeness_cut
+        else:
+            cc_flags = reg_qt.predict(rearrange_x) >= completeness_cut
+
+    return cc_flags
+
+def viero_2013_luminosities_neural_net(z,mass,sfg=1, wpath = '/data/pickles/simstack/', wfile = 'SFR_Mz_Jason_weights_from_neural_network_300layers_N201_SFG.p' ):
   '''
   First attempt at fitting the LMz relation with a neural network.  Not optimized yet.  Also not done for quiescent galaxies.
   '''
