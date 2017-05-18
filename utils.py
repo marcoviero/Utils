@@ -1071,7 +1071,7 @@ def zero_pad(cmap,l2=0):
 def completeness_flag_neural_net(z,mass,sfg=1,completeness_cut=0.8, incomplete=False, wpath='/data/pickles/simstack/', wfile='completeness_flag_neural_network_4x40layers_relu_sf.p'):
 
     rearrange_x = np.transpose(np.array([z,mass]))
-    if sfg ==1:
+    if sfg >=1:
         reg_sfg = pickle.load( open( wpath + wfile, "rb" ) )
         if incomplete == True:
             cc_flags = reg_sfg.predict(rearrange_x) < completeness_cut
