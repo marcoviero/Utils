@@ -45,6 +45,8 @@ def fit_simple_power_law(p, redshifts, lir, feature1=None, feature2=None, featur
 
     powerlaw = A + np.asarray(v['gm_z'])*np.log10(redshifts)
 
+    if feature5 != None:
+        powerlaw += v['gm_'+feature5.keys()[0]] * np.log10(feature5.values()[0])
     if feature4 != None:
         powerlaw += v['gm_'+feature4.keys()[0]] * np.log10(feature4.values()[0])
     if feature3 != None:
@@ -60,6 +62,13 @@ def fit_simple_power_law(p, redshifts, lir, feature1=None, feature2=None, featur
     else:
         return (np.log10(lir[ind]) - powerlaw[ind]) / np.log10(covar[ind])
 
+def build_power_laws(fn,exes):
+    pl = fn['M0']
+    weights = assign_weights(fn)
+    for key in weights:
+        pl += weights[key] * exes[key]
+    return pl
+
 def assign_weights(fn):
     print fn.var_names
     print 'L0=' + str(fn.params['L0'].value)
@@ -67,83 +76,78 @@ def assign_weights(fn):
 
     weights = {}
 
-    weights['M0_d'] = fn.params['L0'].value
-    weights['gm_z_d'] = fn.params['gm_z'].value
+    weights['M0'] = fn.params['L0'].value
+    weights['gm_z'] = fn.params['gm_z'].value
 
     try:
         print 'gm_stellar_mass = ' +str(fn.params['gm_stellar_mass'].value)
-        weights['gm_mass_d'] = fn.params['gm_stellar_mass'].value
-        weights['gm_z_mass_d'] = 0.0
+        weights['gm_mass'] = fn.params['gm_stellar_mass'].value
+        weights['gm_z_mass'] = 0.0
     except:
-        weights['gm_mass_d'] = 0.0
-        weights['gm_z_mass_d'] = 0.0
-
+        weights['gm_mass'] = 0.0
+        weights['gm_z_mass'] = 0.0
     try:
         print 'gm_ahat = ' +str(fn.params['gm_a_hat'].value)
-        weights['gm_ahat_d'] = fn.params['gm_a_hat'].value
-        weights['gm_z_ahat_d'] = 0.0
+        weights['gm_ahat'] = fn.params['gm_a_hat'].value
+        weights['gm_z_ahat'] = 0.0
     except:
-        weights['gm_ahat_d'] = 0.0
-        weights['gm_z_ahat_d'] = 0.0
-
+        weights['gm_ahat'] = 0.0
+        weights['gm_z_ahat'] = 0.0
     try:
         print 'gm_fratio = ' +str(fn.params['gm_f_ratio'].value)
-        weights['gm_fratio_d'] = fn.params['gm_f_ratio'].value
-        weights['gm_z_fratio_d'] = 0.0
+        weights['gm_fratio'] = fn.params['gm_f_ratio'].value
+        weights['gm_z_fratio'] = 0.0
     except:
-        weights['gm_fratio_d'] = 0.0
-        weights['gm_z_fratio_d'] = 0.0
-
+        weights['gm_fratio'] = 0.0
+        weights['gm_z_fratio'] = 0.0
     try:
         print 'gm_uvj = ' + str(fn.params['gm_uvj'].value)
-        weights['gm_uvj_d'] = fn.params['gm_uvj'].value
-        weights['gm_z_uvj_d'] = 0.0
+        weights['gm_uvj'] = fn.params['gm_uvj'].value
+        weights['gm_z_uvj'] = 0.0
     except:
-        weights['gm_uvj_d'] = 0.0
-        weights['gm_z_uvj_d'] = 0.0
+        weights['gm_uvj'] = 0.0
+        weights['gm_z_uvj'] = 0.0
     try:
         print 'gm_uv = ' + str(fn.params['gm_uv'].value)
-        weights['gm_uv_d'] = fn.params['gm_uv'].value
-        weights['gm_z_uv_d'] = 0.0
+        weights['gm_uv'] = fn.params['gm_uv'].value
+        weights['gm_z_uv'] = 0.0
     except:
-        weights['gm_uv_d'] = 0.0
-        weights['gm_z_uv_d'] = 0.0
+        weights['gm_uv'] = 0.0
+        weights['gm_z_uv'] = 0.0
     try:
         print 'gm_vj = ' + str(fn.params['gm_vj'].value)
-        weights['gm_vj_d'] = fn.params['gm_uvj'].value
-        weights['gm_z_vj_d'] = 0.0
+        weights['gm_vj'] = fn.params['gm_uvj'].value
+        weights['gm_z_vj'] = 0.0
     except:
-        weights['gm_vj_d'] = 0.0
-        weights['gm_z_vj_d'] = 0.0
-
+        weights['gm_vj'] = 0.0
+        weights['gm_z_vj'] = 0.0
     try:
         print 'gm_a2t = ' + str(fn.params['gm_a2t'].value)
-        weights['gm_a2t_d'] = fn.params['gm_a2t'].value
-        weights['gm_z_a2t_d'] = 0.0
+        weights['gm_a2t'] = fn.params['gm_a2t'].value
+        weights['gm_z_a2t'] = 0.0
     except:
-        weights['gm_a2t_d'] = 0.0
-        weights['gm_z_a2t_d'] = 0.0
-
+        weights['gm_a2t'] = 0.0
+        weights['gm_z_a2t'] = 0.0
     try:
         print 'gm_age = ' + str(fn.params['gm_age'].value)
-        weights['gm_age_d'] = fn.params['gm_age'].value
-        weights['gm_z_age_d'] = 0.0
+        weights['gm_age'] = fn.params['gm_age'].value
+        weights['gm_z_age'] = 0.0
     except:
-        weights['gm_age_d'] = 0.0
-        weights['gm_z_age_d'] = 0.0
-
+        weights['gm_age'] = 0.0
+        weights['gm_z_age'] = 0.0
     try:
         print 'gm_tau = ' + str(fn.params['gm_tau'].value)
-        weights['gm_tau_d'] = fn.params['gm_tau'].value
-        weights['gm_z_tau_d'] = 0.0
+        weights['gm_tau'] = fn.params['gm_tau'].value
+        weights['gm_z_tau'] = 0.0
     except:
-        weights['gm_tau_d'] = 0.0
-        weights['gm_z_tau_d'] = 0.0
-
+        weights['gm_tau'] = 0.0
+        weights['gm_z_tau'] = 0.0
     try:
         print 'gm_Av = ' + str(fn.params['gm_Av'].value)
-        weights['gm_Av_d'] = fn.params['gm_Av'].value
-        weights['gm_z_Av_d'] = 0.0
+        weights['gm_Av'] = fn.params['gm_Av'].value
+        weights['gm_z_Av'] = 0.0
     except:
-        weights['gm_Av_d'] = 0.0
-        weights['gm_z_Av_d'] = 0.0
+        weights['gm_Av'] = 0.0
+        weights['gm_z_Av'] = 0.0
+
+    return weights
