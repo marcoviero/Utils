@@ -15,7 +15,13 @@ from radial_data import radial_data
 pi=3.141592653589793
 L_sun = 3.839e26 # W
 c = 299792458.0 # m/s
-conv_sfr=1.728e-10/10 ** (.23)
+conv_sfr = 1.728e-10 / 10**(.23)
+conv_luv_to_sfr = 2.17e-10
+conv_lir_to_sfr = 1.72e-10
+a_nu_flux_to_mass=6.7e19
+flux_to_specific_luminosity = 1.78 #1e-23 #1.78e-13
+h = 6.62607004e-34 #m2 kg / s  #4.13e-15 #eV/s
+k = 1.38064852e-23 #m2 kg s-2 K-1 8.617e-5 #eV/K
 gc.enable()
 
 ## A
@@ -791,6 +797,29 @@ def main_sequence_s15(mass,redshift):
     log_sfr = m - m0 + a0*r - a1*(t0)**2
 
     return log_sfr
+
+def measure_sfrd(stacked_object, area_deg=1.62, tsfrd=False, cosmo=cosmo):
+	if area_deg == 1.62:
+		print 'defaulting to uVista/COSMOS area of 1.62deg2'
+	area_sr = area_deg * (3.1415926535 / 180.)**2
+	sfrd = np.zeros(np.shape(stacked_object.simstack_nuInu_array))
+	for i in range(stacked_object.nz):
+		zn = stacked_object.z_nodes[i:i+2]
+		z_suf = '{:.2f}'.format(zn[0])+'-'+'{:.2f}'.format(zn[1])
+		vol = cosmo.comoving_volume(zn[1]) - cosmo.comoving_volume(zn[0])
+		for iwv in range(stacked_object.nw):
+			for j in range(stacked_object.nm):
+				mn = stacked_object.m_nodes[j:j+2]
+				m_suf = '{:.2f}'.format(mn[0])+'-'+'{:.2f}'.format(mn[1])
+				for p in range(stacked_object.npops):
+					arg = clean_args('z_'+z_suf+'__m_'+m_suf+'_'+stacked_object.pops[p])
+					ng = len(stacked_object.bin_ids[arg])
+					sfr = conv_lir_to_sfr * stacked_object.simstack_flux_array[iwv,i,j,p]
+					sfrd[iwv,i,j,p] += float(ng) / area_sr * sfr
+	if tsfrd == True:
+		return np.sum(np.sum(np.sum(sfrd,axis=1),axis=1),axis=1)
+	else:
+		return sfrd
 
 def moster_shm(z, Mh): # = 0, nm  =100.0, mmin = 10.0, mmax = 15.0):
 
