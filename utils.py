@@ -901,6 +901,11 @@ def poly(X,C):
 ## R
 #def round_sig(x, sig=2):
 #  return np.round(x, sig-int(np.floor(np.log10(x)))-1)
+def reduced_chi2(fn,silent=True):
+    red_chi2 = fn.chisqr/fn.nfree
+    if silent == False:
+        print 'reduced chi2 = '+str(red_chi2)
+    return red_chi2
 
 ## S
 
