@@ -77,7 +77,10 @@ def build_training_set(db,stacked_flux_densities, features_list, znodes, mnodes,
 
                 if ((ngal > ngal_cut) & (completeness_flag == True)):
                     if Y_dict != None:
-                        training_set[key].append(Y_dict[key][arg][0])
+                        try:
+                            training_set[key].append(Y_dict[key][arg][0])
+                        except IndexError:
+                            training_set[key].append(Y_dict[key][arg])
                         training_set['Y_err'].append(Y_dict['Y_err'][arg])
                     for ft in features_list:
                         if ft in['ltau','lage','a_hat_AGN','la2t','Av']:
