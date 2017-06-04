@@ -83,7 +83,7 @@ def build_training_set(db,stacked_flux_densities, features_list, znodes, mnodes,
                             training_set[key].append(Y_dict[key][arg])
                         training_set['Y_err'].append(Y_dict['Y_err'][arg])
                     for ft in features_list:
-                        if ft in['ltau','lage','a_hat_AGN','la2t','Av']:
+                        if ft in['ltau','lage','a_hat_AGN','la2t']:
                             training_set[ft].append(10**subset_averages_from_ids(db.table,ind,ft))
                         elif ft in['LMASS','lmass']:
                             training_set['stellar_mass'].append(10**subset_averages_from_ids(db.table,ind,ft))
@@ -136,7 +136,41 @@ def simple_power_law_fitter(redshifts, lir, additional_features = {}, covar=None
 
     return m
 
-def find_variable_power_law_fit(p, redshifts, lir, stellar_mass, feature1=None, feature2=None, feature3=None,  feature4=None, covar = None):
+def find_variable_power_law_fit(p, redshifts, lir, feature1=None, feature2=None, feature3=None,  feature4=None, feature5=None, covar = None):
+
+    v = p.valuesdict()
+    A= np.asarray(v['L0'])
+    gamma_z = np.asarray(v['gm_z']) * np.ones(len(redshifts))
+
+    powerlaw = A + np.zeros(len(redshifts))
+
+    if feature5 != None:
+        gamma_z += v['gm_z_'+feature5.keys()[0]] * np.log10(feature5.values()[0])
+        powerlaw += v['gm_'+feature5.keys()[0]] * np.log10(feature5.values()[0])
+    if feature4 != None:
+        gamma_z += v['gm_z_'+feature4.keys()[0]] * np.log10(feature4.values()[0])
+        powerlaw += v['gm_'+feature4.keys()[0]] * np.log10(feature4.values()[0])
+    if feature3 != None:
+        gamma_z += v['gm_z_'+feature3.keys()[0]] * np.log10(feature3.values()[0])
+        powerlaw += v['gm_'+feature3.keys()[0]] * np.log10(feature3.values()[0])
+    if feature2 != None:
+        gamma_z += v['gm_z_'+feature2.keys()[0]] * np.log10(feature2.values()[0])
+        powerlaw += v['gm_'+feature2.keys()[0]] * np.log10(feature2.values()[0])
+    if feature1 != None:
+        #pdb.set_trace()
+        gamma_z += v['gm_z_'+feature1.keys()[0]] * np.log10(feature1.values()[0])
+        powerlaw += v['gm_'+feature1.keys()[0]] * np.log10(feature1.values()[0])
+
+    powerlaw += gamma_z*np.log10(redshifts)
+
+    ind = np.where(clean_nans(powerlaw) > 0)
+
+    if covar == None:
+        return lir[ind]- 10**powerlaw[ind]
+    else:
+        return (lir[ind] - 10**powerlaw[ind]) / covar[ind]
+
+def find_variable_power_law_fit0(p, redshifts, lir, stellar_mass, feature1=None, feature2=None, feature3=None,  feature4=None, covar = None):
 
     v = p.valuesdict()
     A= np.asarray(v['L0'])
@@ -167,7 +201,29 @@ def find_variable_power_law_fit(p, redshifts, lir, stellar_mass, feature1=None, 
     else:
         return (lir[ind] - 10**powerlaw[ind]) / covar[ind]
 
-def fast_variable_power_law_fitter(redshifts, lir, additional_features = {}, covar=None):
+def fast_variable_power_law_fitter(redshifts, lir, additional_features = {}, covar=None, evolving_slope = True):
+    fit_params = Parameters()
+    fit_params.add('L0',value=9.5)
+    fit_params.add('gm_z',value= 1.8, vary = True) #, min = 0.001, max=2.5)
+    kws = {}
+    if covar != None: kws['covar']=covar
+    kws['lir'] = lir
+    j=1
+    for i in additional_features:
+        fit_params.add('gm_z_'+i, value= 0.0, vary = evolving_slope)
+        fit_params.add('gm_'+i, value= 0.1, vary = True)
+        kws['feature'+str(j)] = additional_features[i]
+        j+=1
+
+    LMZpl_params = minimize(find_variable_power_law_fit,fit_params,
+        args = (np.ndarray.flatten(redshifts),),
+        kws  = kws)
+
+    m = LMZpl_params
+
+    return m
+
+def fast_variable_power_law_fitter0(redshifts, lir, additional_features = {}, covar=None):
     fit_params = Parameters()
     fit_params.add('L0',value=9.5)
     fit_params.add('gm_z',value= 1.8, vary = True) #, min = 0.001, max=2.5)
@@ -186,7 +242,7 @@ def fast_variable_power_law_fitter(redshifts, lir, additional_features = {}, cov
             kws['feature'+str(j)] = additional_features[i]
             j+=1
 
-    LMZpl_params = minimize(find_variable_power_law_fit,fit_params,
+    LMZpl_params = minimize(find_variable_power_law_fit0,fit_params,
         args = (np.ndarray.flatten(redshifts),),
         kws  = kws)
 
