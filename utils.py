@@ -1090,6 +1090,34 @@ def viero_2013_luminosities_fast(z,mass,sfg=1):
   Tdust = T_0 * ((1+np.array(z))/(1.0+z_T))**(epsilon_T)
 
   return [logl,Tdust]
+
+def sun_2017_luminosities(z,mass,sfg=1):
+  import numpy as np
+  y = np.array([[-1.394474e1 , 4.041825e0 , -1.631074e-1],
+               [ -2.591077e1 , 5.489635e0 , -2.772765e-1],
+               [ -5.195503e0 ,-1.258765e0 ,  7.047952e-2]])
+  ms=np.shape(y)
+  npp=ms[0]
+  nz=len(z)
+  nm=len(mass)
+
+  ex=np.zeros([nm,nz,npp])
+  logl=np.zeros([nm,nz])
+
+  for iz in range(nz):
+    for im in range(nm):
+      for ij in range(npp):
+         for ik in range(npp):
+          ex[im,iz,ij] += y[ij,ik] * mass[im]**(ik)
+      for ij in range(npp):
+        logl[im,iz] += ex[im,iz,ij] * z[iz]**(ij)
+
+  T_0 = 27.0
+  z_T = 1.0
+  epsilon_T = 0.4
+  Tdust = T_0 * ((1+np.array(z))/(1.0+z_T))**(epsilon_T)
+
+  return [logl,Tdust]
 ## Z
 def zero_pad(cmap,l2=0):
   ms=np.shape(cmap)
