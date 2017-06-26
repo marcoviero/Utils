@@ -1095,7 +1095,7 @@ def sun_2017_luminosities(z,mass,sfg=1):
   import numpy as np
   y = np.array([[-1.394474e1 , 4.041825e0 , -1.631074e-1],
                [ -2.591077e1 , 5.489635e0 , -2.772765e-1],
-               [ -5.195503e0 ,-1.258765e0 ,  7.047952e-2]])
+               [  5.195503e0 ,-1.258765e0 ,  7.047952e-2]])
   ms=np.shape(y)
   npp=ms[0]
   nz=len(z)
