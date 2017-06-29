@@ -65,7 +65,9 @@ class Skymaps:
 			self.psf_pixel_size = pix_beam
 		else:
 			sig = psf / 2.355 / pix
-			kern = gauss_kern(psf, np.floor(psf * 8.), pix)
+			#pdb.set_trace()
+			#kern = gauss_kern(psf, np.floor(psf * 8.), pix)
+			kern = gauss_kern(psf, np.floor(psf * 8.)/pix, pix)
 
 		self.map = clean_nans(cmap) * color_correction
 		self.noise = clean_nans(cnoise,replacement_char=1e10) * color_correction
