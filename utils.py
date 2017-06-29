@@ -679,6 +679,7 @@ def gauss_kern(fwhm, side, pixsize):
   gaussian_filter(delt, sig, output= kern)
   kern /= np.max(kern)
 
+  #pdb.set_trace()
   return kern
 
 def get_stellar_mass_at_number_density(zeds,nden,sfg=2):
