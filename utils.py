@@ -8,10 +8,13 @@ import cPickle as pickle
 from astropy.cosmology import Planck15 as cosmo
 import astropy.units as u
 from scipy.ndimage.filters import gaussian_filter
+from scipy.optimize import curve_fit
 import scipy.io
 from scipy import fftpack
 from lmfit import Parameters, minimize, fit_report
 from radial_data import radial_data
+import pylab as plt
+
 pi=3.141592653589793
 L_sun = 3.839e26 # W
 c = 299792458.0 # m/s
@@ -667,6 +670,14 @@ def gamma_rj(Td,z,nu_obs):
     den = np.exp(num) - 1.0
     return num/den
 
+#def gauss(x, *p):
+#    A, mu, sigma = p
+#    return A*numpy.exp(-(x-mu)**2/(2.*sigma**2))
+
+def gauss(x, x0, y0, sigma):
+    p = [x0, y0, sigma]
+    return p[1]* np.exp(-((x-p[0])/p[2])**2)
+
 def gauss_kern(fwhm, side, pixsize):
   ''' Create a 2D Gaussian (size= side x side)'''
 
@@ -798,6 +809,43 @@ def main_sequence_s15(mass,redshift):
     log_sfr = m - m0 + a0*r - a1*(t0)**2
 
     return log_sfr
+
+def map_rms(map,header=None,mask=None,silent=True):
+    if mask != None:
+         ind = np.where((mask == 1) & (clean_nans(map) != 0))
+         print 'using mask'
+    else:
+         ind = clean_nans(map) != 0
+    map /= np.max(map)
+
+    #hist, bin_edges = np.histogram(map[ind], density=True)
+    #hist, bin_edges = np.histogram(map[ind],range=(np.min(map),0),bins=50)
+    #hist, bin_edges = np.histogram(map[ind],range=(np.min(map),abs(np.min(map))),bins=50,density=True)
+    #x0 = 0.9*np.min(map)
+    x0 = np.percentile(map,6.0) * 1.5
+    #hist, bin_edges = np.histogram(np.unique(map),range=(np.min(map),abs(np.min(map))),bins=50,density=True)
+    hist, bin_edges = np.histogram(np.unique(map),range=(x0,abs(x0)),bins=30,density=True)
+
+    p0 = [0., 1., 1e-2]
+    x = .5 * (bin_edges[:-1] + bin_edges[1:])
+    #x_peak = x[hist == max(hist)][0]
+    x_peak = 1+np.where(x == x[hist == max(hist)][0])[0][0]
+    #x_peak = find_nearest_index(hist, max(hist)[0])
+
+    # Fit the data with the function
+    #fit, tmp = curve_fit(gauss, x, hist/max(hist), p0=p0)
+    fit, tmp = curve_fit(gauss, x[:x_peak], hist[:x_peak]/max(hist), p0=p0)
+    #sig_rad = fit[2] * pixsize_deg * (3.14159 / 180)
+    #fwhm = fit[2] * pixsize_deg * 3600. * 2.355
+    rms_1sig = fit[2]
+    if silent == False:
+        print('1sigma rms=%.2e' % rms_1sig)
+        plt.plot(x,hist)
+        plt.plot(x[:x_peak],hist[:x_peak])
+        plt.show()
+    pdb.set_trace()
+
+    return rms_1sig
 
 def measure_sfrd(stacked_object, area_deg=1.62, tsfrd=False, cosmo=cosmo):
 	if area_deg == 1.62:

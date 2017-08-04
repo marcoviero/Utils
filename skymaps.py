@@ -7,6 +7,7 @@ from utils import bin_ndarray as rebin
 from utils import gauss_kern
 from utils import clean_nans
 from utils import clean_args
+from utils import map_rms
 from astropy import cosmology
 from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import Planck15, z_at_value
@@ -76,6 +77,7 @@ class Skymaps:
 		self.header = hd
 		self.pixel_size = pix
 		self.psf = clean_nans(kern)
+		#self.rms = map_rms(self.map, silent=False)
 
 		if wavelength != None:
 			add_wavelength(wavelength)
