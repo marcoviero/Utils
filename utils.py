@@ -822,9 +822,9 @@ def map_rms(map,header=None,mask=None,silent=True):
     #hist, bin_edges = np.histogram(map[ind],range=(np.min(map),0),bins=50)
     #hist, bin_edges = np.histogram(map[ind],range=(np.min(map),abs(np.min(map))),bins=50,density=True)
     #x0 = 0.9*np.min(map)
-    x0 = np.percentile(map,6.0) * 1.5
+    x0 = np.percentile(map,98.5)
     #hist, bin_edges = np.histogram(np.unique(map),range=(np.min(map),abs(np.min(map))),bins=50,density=True)
-    hist, bin_edges = np.histogram(np.unique(map),range=(x0,abs(x0)),bins=30,density=True)
+    hist, bin_edges = np.histogram(np.unique(map),range=(-abs(x0),abs(x0)),bins=30,density=True)
 
     p0 = [0., 1., 1e-2]
     x = .5 * (bin_edges[:-1] + bin_edges[1:])
@@ -842,8 +842,10 @@ def map_rms(map,header=None,mask=None,silent=True):
         print('1sigma rms=%.2e' % rms_1sig)
         plt.plot(x,hist)
         plt.plot(x[:x_peak],hist[:x_peak])
+        plt.plot(np.linspace(-abs(x0),abs(x0),121),
+                max(hist)*gauss(np.linspace(-abs(x0),abs(x0),121),*fit),'m--')
         plt.show()
-    pdb.set_trace()
+    #pdb.set_trace()
 
     return rms_1sig
 
