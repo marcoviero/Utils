@@ -822,14 +822,14 @@ def map_rms(map,header=None,mask=None,silent=True):
     #hist, bin_edges = np.histogram(map[ind],range=(np.min(map),0),bins=50)
     #hist, bin_edges = np.histogram(map[ind],range=(np.min(map),abs(np.min(map))),bins=50,density=True)
     #x0 = 0.9*np.min(map)
-    x0 = np.percentile(map,98.5)
+    x0 = abs(np.percentile(map,99))
     #hist, bin_edges = np.histogram(np.unique(map),range=(np.min(map),abs(np.min(map))),bins=50,density=True)
-    hist, bin_edges = np.histogram(np.unique(map),range=(-abs(x0),abs(x0)),bins=30,density=True)
+    hist, bin_edges = np.histogram(np.unique(map),range=(-x0,x0),bins=30,density=True)
 
-    p0 = [0., 1., 1e-2]
+    p0 = [0., 1., x0/3]
     x = .5 * (bin_edges[:-1] + bin_edges[1:])
     #x_peak = x[hist == max(hist)][0]
-    x_peak = 1+np.where(x == x[hist == max(hist)][0])[0][0]
+    x_peak = 1+np.where((hist - max(hist))**2 < 0.01)[0][0]
     #x_peak = find_nearest_index(hist, max(hist)[0])
 
     # Fit the data with the function
@@ -837,7 +837,7 @@ def map_rms(map,header=None,mask=None,silent=True):
     fit, tmp = curve_fit(gauss, x[:x_peak], hist[:x_peak]/max(hist), p0=p0)
     #sig_rad = fit[2] * pixsize_deg * (3.14159 / 180)
     #fwhm = fit[2] * pixsize_deg * 3600. * 2.355
-    rms_1sig = fit[2]
+    rms_1sig = abs(fit[2])
     if silent == False:
         print('1sigma rms=%.2e' % rms_1sig)
         plt.plot(x,hist)
