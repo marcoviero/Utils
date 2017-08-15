@@ -77,7 +77,7 @@ class Skymaps:
 		self.header = hd
 		self.pixel_size = pix
 		self.psf = clean_nans(kern)
-		self.rms = map_rms(self.map, silent=False)
+		self.rms = map_rms(self.map.copy(), silent=True)
 
 		if wavelength != None:
 			add_wavelength(wavelength)
