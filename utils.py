@@ -1201,7 +1201,7 @@ def completeness_flag_neural_net(z,mass,sfg=1,completeness_cut=0.8, incomplete=F
 
     return cc_flags
 
-def viero_2013_luminosities_neural_net(z,mass,sfg=1, wpath = '/data/pickles/simstack/', wfile = 'SFR_Mz_Jason_weights_from_neural_network_300layers_N201_SFG.p' ):
+def viero_2013_luminosities_neural_net(z,mass,sfg=1, wpath = '/data/pickles/simstack/ann_luminosities/', wfile = 'SFR_Mz_Jason_weights_from_neural_network_300layers_N201_SFG.p' ):
   '''
   First attempt at fitting the LMz relation with a neural network.  Not optimized yet.  Also not done for quiescent galaxies.
   '''
